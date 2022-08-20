@@ -86,7 +86,7 @@ func main() {
 
 	//Start Redis on database 1 - it's used to store the JWT but you can use it for anythig else
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
-	db.InitRedis(1)
+	// db.InitRedis(1)
 
 	v1 := r.Group("/v1")
 	{
@@ -139,7 +139,7 @@ func main() {
 			KEY  string
 		}{}
 
-		//Generated using sh generate-certificate.sh
+		// Generated using sh generate-certificate.sh
 		SSLKeys.CERT = "./cert/myCA.cer"
 		SSLKeys.KEY = "./cert/myCA.key"
 

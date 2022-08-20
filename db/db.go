@@ -9,6 +9,7 @@ import (
 	"github.com/go-gorp/gorp"
 	_redis "github.com/go-redis/redis/v7"
 	_ "github.com/lib/pq" //import postgres
+	_ "github.com/mattn/go-sqlite3"
 )
 
 //DB ...
@@ -21,10 +22,10 @@ var db *gorp.DbMap
 //Init ...
 func Init() {
 
-	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"))
+	dbinfo := fmt.Sprintf("./db/%s", os.Getenv("DB_NAME"))
 
 	var err error
-	db, err = ConnectDB(dbinfo)
+	db, err = ConnectSQLiteDB(dbinfo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +33,22 @@ func Init() {
 }
 
 //ConnectDB ...
-func ConnectDB(dataSourceName string) (*gorp.DbMap, error) {
+func ConnectSQLiteDB(dataSourceName string) (*gorp.DbMap, error) {
+	db, err := sql.Open("sqlite3", dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+
+	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
+	//dbmap.TraceOn("[gorp]", log.New(os.Stdout, "golang-gin:", log.Lmicroseconds)) //Trace database requests
+	return dbmap, nil
+}
+
+func ConnectPostgresDB(dataSourceName string) (*gorp.DbMap, error) {
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return nil, err
