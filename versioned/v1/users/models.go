@@ -1,57 +1,49 @@
-package models
+package users
 
 import (
+	"time"
+	db "user_service/db"
+
 	"gorm.io/gorm"
 )
 
 //User ...
-type User struct {
+type UserModel struct {
 	gorm.Model
-	ID        int64  `db:"id, primarykey, autoincrement" json:"id"`
-	Email     string `db:"email" json:"email"`
-	Password  string `db:"password" json:"-"`
-	Name      string `db:"name" json:"name"`
-	Phone     string `db:"phone" json:"phone"`
-	Address   string `db:"address" json:"address"`
-	Country   string `db:"country" json:"country"`
-	Zipcode   string `db:"zipcode" json:"zipcode"`
-	UpdatedAt int64  `db:"updated_at" json:"-"`
-	CreatedAt int64  `db:"created_at" json:"-"`
+	ID        int       `db:"id, primarykey, autoincrement" json:"id"`
+	Email     string    `db:"email" json:"email"`
+	Password  string    `db:"password" json:"-"`
+	Name      string    `db:"name" json:"name"`
+	Phone     string    `db:"phone" json:"phone"`
+	Address   string    `db:"address" json:"address"`
+	Country   string    `db:"country" json:"country"`
+	Zipcode   string    `db:"zipcode" json:"zipcode"`
+	UpdatedAt time.Time `db:"updated_at" json:"-"`
+	CreatedAt time.Time `db:"created_at" json:"-"`
 }
 
-// func (h User) Signup(userPayload forms.UserSignup) (*User, error) {
-// 	db := db.GetDB()
-// 	id := uuid.NewV4()
-// 	user := User{
-// 		ID:        id.String(),
-// 		Name:      userPayload.Name,
-// 		BirthDay:  userPayload.BirthDay,
-// 		Gender:    userPayload.Gender,
-// 		PhotoURL:  userPayload.PhotoURL,
-// 		Time:      time.Now().UnixNano(),
-// 		Active:    true,
-// 		UpdatedAt: time.Now().UnixNano(),
-// 	}
-// 	item, err := dynamodbattribute.MarshalMap(user)
-// 	if err != nil {
-// 		errors.New("error when try to convert user data to dynamodbattribute")
-// 		return nil, err
-// 	}
-// 	params := &dynamodb.PutItemInput{
-// 		Item:      item,
-// 		TableName: aws.String("TableUsers"),
-// 	}
-// 	if _, err := db.PutItem(params); err != nil {
-// 		log.Println(err)
-// 		return nil, errors.New("error when try to save data to database")
-// 	}
-// 	return &user, nil
-// }
+func SaveOne(data interface{}) error {
+	return db.GetDB().Create(data).Error
+}
 
-func (h User) GetByID(id string) (*User, error) {
-	// db := db.GetDB()
-	var user *User
-	return user, nil
+func (h UserModel) FindOneUser(condition interface{}) (UserModel, error) {
+	var model UserModel
+	tx := db.GetDB().Begin()
+	tx.Where(condition).First(&model)
+	err := tx.Commit().Error
+	return model, err
+}
+
+func (h UserModel) FindManyUser(limit int, offset int) ([]UserModel, int, error) {
+	var models []UserModel
+	var count_int64 int64
+
+	tx := db.GetDB().Begin()
+	tx.Find(&models).Offset(offset).Limit(limit).Count(&count_int64)
+	count_int := int(count_int64)
+	err := tx.Commit().Error
+
+	return models, count_int, err
 }
 
 // //UserModel ...

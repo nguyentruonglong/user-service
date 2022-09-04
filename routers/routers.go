@@ -2,17 +2,17 @@ package routers
 
 import (
 	"user_service/versioned/v1/middlewares"
-	routes_v1 "user_service/versioned/v1/routes"
+	users "user_service/versioned/v1/users"
 
 	"github.com/gin-gonic/gin"
 )
 
 func BindRouters(baseRouter *gin.Engine) {
-	apiRouterGroup := baseRouter.Group("api")
-	apiRouterGroup.Use(gin.Logger())
-	apiRouterGroup.Use(gin.Recovery())
+	superRouter := baseRouter.Group("api")
+	superRouter.Use(gin.Logger())
+	superRouter.Use(gin.Recovery())
 
-	apiRouterGroup.Use(middlewares.AuthMiddleware())
+	superRouter.Use(middlewares.AuthMiddleware())
 
-	routes_v1.BindRoutes(apiRouterGroup)
+	users.UsersRegister(superRouter)
 }

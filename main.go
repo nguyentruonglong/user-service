@@ -6,7 +6,7 @@ import (
 
 	db "user_service/db"
 	routers "user_service/routers"
-	"user_service/versioned/v1/models"
+	users "user_service/versioned/v1/users"
 
 	"github.com/joho/godotenv"
 
@@ -78,7 +78,7 @@ func main() {
 	//Start PostgreSQL database
 	//Example: db.GetDB() - More info in the models folder
 	sqliteDB, err := db.Init()
-	sqliteDB.AutoMigrate(&models.User{})
+	sqliteDB.AutoMigrate(&users.UserModel{})
 
 	//Start Redis on database 1 - it's used to store the JWT but you can use it for anythig else
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
