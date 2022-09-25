@@ -29,5 +29,6 @@ func (s *UserCreateValidator) Bind(c *gin.Context) error {
 	s.validatedData.Zipcode = s.userCreateSerializer.Zipcode
 	s.validatedData.CreatedAt = time.Now()
 	s.validatedData.UpdatedAt = time.Now()
+
 	return nil
 }
