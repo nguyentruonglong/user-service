@@ -8,12 +8,11 @@ func UsersRegister(baseRouter *gin.RouterGroup) *gin.RouterGroup {
 
 	v1 := baseRouter.Group("v1")
 	{
-		userGroup := v1.Group("user")
+		userGroup := v1.Group("users")
 		{
 			userController := new(UserController)
-			userGroup.GET("/", userController.GetUsers)
-			userGroup.GET("/:id", userController.GetUser)
-			userGroup.POST("/", userController.CreateUser)
+			userGroup.GET("/search", userController.GetUsers)
+			userGroup.GET("/detail/:id", userController.GetUser)
 		}
 	}
 
