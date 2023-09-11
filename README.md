@@ -133,7 +133,6 @@ curl -X POST http://localhost:8080/api/v1/register -d '{"email": "user@example.c
 
 #### 2. Email Verification
 
-<<<<<<< HEAD
 - Endpoint: /api/v1/verify-email (POST)
 
 - Description: Allows users to verify their email addresses using a verification code sent via email.
