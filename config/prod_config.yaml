@@ -1,0 +1,36 @@
+# Production Configuration
+
+# HTTP Port
+http_port: 80
+
+# Host
+host: <production-host>
+
+# HTTPS Port (you can specify an additional HTTPS port if needed)
+https_port: 443
+
+# Database Configuration
+database:
+  driver: postgres
+  connection_string: "postgres://username:password@production-database-url:5432/production_database"
+
+# Firebase Configuration
+firebase:
+  api_key: "production_firebase_api_key"
+  project_id: "production_firebase_project_id"
+  storage_bucket: "production_firebase_storage_bucket"
+  auth_domain: "production_firebase_auth_domain"
+  database_url: "https://production-firebase-database-url.firebaseio.com"
+
+# Email Configuration
+email:
+  smtp_server: "smtp.production-example.com"
+  smtp_port: 587
+  smtp_user: "production_smtp_username"
+  smtp_password: "production_smtp_password"
+
+# SMS Configuration
+sms:
+  twilio_account_sid: "production_twilio_account_sid"
+  twilio_auth_token: "production_twilio_auth_token"
+  twilio_phone_number: "+1234567890"

@@ -164,7 +164,15 @@ Before launching the User Service, make sure you have Go (Golang) installed on y
     cd user-service
    ```
 
-3. Install the project dependencies using Go modules:
+3. Initialize a Go module for your project:
+
+    ```sh
+    $ go mod init user-service
+    ```
+
+    This command creates a go.mod file in your project directory and sets the module path to "user-service." You can replace "user-service" with your desired module name.
+
+4. Install the project dependencies using Go modules:
 
    ```sh
     go mod tidy
@@ -188,13 +196,37 @@ To run the User Service on different environments, follow these instructions:
 
 3. Build the application:
 
+    - On Windows:
+
+    Open a command prompt, navigate to the project directory, and run the following command to build the application:
+
+    ```cmd
+    go build -o user-service.exe main.go
     ```
+
+    - On Ubuntu (or Linux):
+
+    Open a terminal, navigate to the project directory, and run the following command to build the application:
+
+    ```sh
     $ go build -o user-service main.go
     ```
 
 4. Run the server in development mode using the dev configuration:
 
+    - On Windows:
+
+    After building the application, you can run the server in development mode with the dev configuration using the following command:
+
+    ```cmd
+    user-service.exe --config=config\dev_config.yaml
     ```
+
+    - On Ubuntu (or Linux):
+
+    After building the application, you can run the server in development mode with the dev configuration using the following command:
+
+    ```sh
     $ ./user-service --config=config/dev_config.yaml
     ```
 
@@ -210,13 +242,37 @@ To run the User Service on different environments, follow these instructions:
 
 3. Build the application:
 
+    - On Windows:
+
+    Open a command prompt, navigate to the project directory, and run the following command to build the application:
+
+    ```cmd
+    go build -o user-service.exe main.go
     ```
+
+    - On Ubuntu (or Linux):
+
+    Open a terminal, navigate to the project directory, and run the following command to build the application:
+
+    ```sh
     $ go build -o user-service main.go
     ```
 
 4. Run the server in production mode using the prod configuration:
 
+    - On Windows:
+
+    After building the application, you can run the server in production mode with the prod configuration using the following command:
+
+    ```cmd
+    user-service.exe --config=config\prod_config.yaml
     ```
+
+    - On Ubuntu (or Linux):
+    
+    After building the application, you can run the server in production mode with the prod configuration using the following command:
+
+    ```sh
     $ ./user-service --config=config/prod_config.yaml
     ```
 

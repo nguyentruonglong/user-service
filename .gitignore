@@ -1,16 +1,47 @@
+# Compiled Go binary
+user-service
+user-service.exe
 
-# OS generated files #
-######################
-.DS_Store
-.DS_Store?
+# Dependency directories
+/bin/
+/pkg/
+/vendor/
 
-# Logs #
-######################
+# Binary executables
+*.exe
+*.out
+
+# Log files
 *.log
 
-# SENSITVE DATA #
-.gitconfig
-cert/
+# Output files from test coverage
+*.cover
+*.coverprofile
 
-# BUILD #
-./gin-boilerplate
+# Environment variables file
+.env
+
+# macOS specific files
+.DS_Store
+
+# Visual Studio Code settings
+.vscode/
+
+# Go specific
+.idea/
+*.iml
+*.swp
+.idea
+
+# Binary release build
+release/
+
+# SQLite database files
+*.db
+
+# Compiled Web assets
+web/assets
+
+# User-specific files
+# config/dev_config.yaml
+# config/prod_config.yaml

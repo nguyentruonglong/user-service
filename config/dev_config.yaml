@@ -1,0 +1,33 @@
+# Development Configuration
+
+# HTTP Port
+http_port: 8080
+
+# Host
+host: localhost
+
+# Database Configuration
+database:
+  driver: postgres
+  connection_string: "postgres://username:password@localhost:5432/dev_database"
+
+# Firebase Configuration
+firebase:
+  api_key: "firebase_api_key"
+  project_id: "firebase_project_id"
+  storage_bucket: "firebase_storage_bucket"
+  auth_domain: "firebase_auth_domain"
+  database_url: "https://firebase-database-url.firebaseio.com"
+
+# Email Configuration
+email:
+  smtp_server: "smtp.example.com"
+  smtp_port: 587
+  smtp_user: "smtp_username"
+  smtp_password: "smtp_password"
+
+# SMS Configuration
+sms:
+  twilio_account_sid: "twilio_account_sid"
+  twilio_auth_token: "twilio_auth_token"
+  twilio_phone_number: "+1234567890"
