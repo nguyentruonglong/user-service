@@ -9,10 +9,10 @@ host: <production-host>
 # HTTPS Port (you can specify an additional HTTPS port if needed)
 https_port: 443
 
-# Database Configuration
+# Database Configuration (SQLite)
 database:
-  driver: postgres
-  connection_string: "postgres://username:password@production-database-url:5432/production_database"
+  driver: sqlite3
+  connection_string: "production.sqlite3"
 
 # Firebase Configuration
 firebase:

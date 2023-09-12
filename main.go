@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"user-service/config" // Import config package
+	"user-service/database"
 
 	"github.com/gorilla/mux"
 )
@@ -25,9 +26,16 @@ func main() {
 	}
 
 	// Access configuration values
-	log.Printf("HTTP Port: %d", cfg.HTTPPort)
+	log.Printf("HTTP Port: %d", cfg.GetHTTPPort())
 	log.Printf("Host: %s", cfg.GetHost())
 	log.Printf("Database URL: %s", cfg.GetDatabaseURL())
+
+	// Initialize the database
+	db, err := database.InitDB(cfg.GetDatabaseURL())
+	if err != nil {
+		log.Fatalf("Failed to initialize the database: %v", err)
+	}
+	defer database.CloseDB(db) // Close the database connection when the server exits
 
 	// Create a new router using Gorilla Mux.
 	router := mux.NewRouter()

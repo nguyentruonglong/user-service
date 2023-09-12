@@ -6,10 +6,10 @@ http_port: 8080
 # Host
 host: localhost
 
-# Database Configuration
+# Database Configuration (SQLite)
 database:
-  driver: postgres
-  connection_string: "postgres://username:password@localhost:5432/dev_database"
+  driver: sqlite3
+  connection_string: "development.sqlite3"
 
 # Firebase Configuration
 firebase:

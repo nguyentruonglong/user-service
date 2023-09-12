@@ -38,6 +38,7 @@ release/
 
 # SQLite database files
 *.db
+*.sqlite3
 
 # Compiled Web assets
 web/assets

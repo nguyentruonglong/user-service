@@ -9,6 +9,7 @@ import (
 // AppConfig holds the application configuration.
 type AppConfig struct {
 	HTTPPort     int    `mapstructure:"http_port"`
+	HTTPSPort    int    `mapstructure:"https_port"`
 	Host         string `mapstructure:"host"`
 	Database     DatabaseConfig
 	Firebase     FirebaseConfig
