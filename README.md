@@ -24,6 +24,121 @@ The User Service is a robust and versatile Golang-based application meticulously
 
 This comprehensive suite of features caters to a wide range of user management and authentication needs, making the User Service a reliable and indispensable component for building secure and user-centric applications.
 
+### Project Directory Structure
+
+The User Service project is organized with a clear directory structure to promote code modularity, maintainability, and separation of concerns. Here's an overview of the project directory structure:
+
+```
+    user-service/
+    |-- api/
+    |   |-- v1/
+    |   |   |-- controllers/
+    |   |   |   |-- user_controller.go                # User Controller
+    |   |   |   |-- search_controller.go              # Search Controller
+    |   |   |   |-- verification_controller.go        # Verification Controller
+    |   |   |   |-- notification_controller.go        # Notification Controller
+    |   |   |
+    |   |   |-- routes/
+    |   |   |   |-- user_routes.go                    # User Routes
+    |   |   |   |-- search_routes.go                  # Search Routes
+    |   |   |   |-- verification_routes.go            # Verification Routes
+    |   |   |   |-- notification_routes.go            # Notification Routes
+    |   |   |
+    |   |   |-- validators/
+    |   |   |   |-- user_validator.go                 # User Validator
+    |   |   |   |-- search_validator.go               # Search Validator
+    |   |   |   |-- verification_validator.go         # Verification Validator
+    |   |   |   |-- notification_validator.go         # Notification Validator
+    |   |
+    |   |-- middlewares/
+    |   |   |-- auth_middleware.go                   # Authentication Middleware
+    |   |
+    |   |-- models/
+    |   |   |-- user.go                              # User Model
+    |   |
+    |   |-- services/
+    |   |   |-- user_service.go                      # User Service
+    |   |   |-- search_service.go                    # Search Service
+    |   |   |-- verification_service.go              # Verification Service
+    |   |   |-- notification_service.go              # Notification Service
+    |
+    |-- config/
+    |   |-- dev_config.yaml                           # Development Configuration
+    |   |-- prod_config.yaml                          # Production Configuration
+    |   |-- config.go                                # Configuration Module
+    |
+    |-- database/
+    |   |-- migrations/
+    |   |   |-- 0001_initial_migration.go            # Initial Database Migration
+    |   |
+    |   |-- database.go                              # Database Connection
+    |
+    |-- firebase/
+    |   |-- firebase.go                              # Firebase Configuration
+    |   |-- auth_service.go                          # Firebase Authentication Service
+    |   |-- database_service.go                      # Firebase Realtime Database Service
+    |
+    |-- email/
+    |   |-- email_service.go                         # Email Service
+    |   |-- verification_email.go                    # Email Verification Service
+    |   |-- password_reset_email.go                  # Password Reset Email Service
+    |
+    |-- sms/
+    |   |-- sms_service.go                           # SMS Service
+    |   |-- verification_sms.go                      # SMS Verification Service
+    |
+    |-- utils/
+    |   |-- helpers.go                               # Utility Functions
+    |
+    |-- tests/
+    |   |-- user_controller_test.go                  # Unit Tests for User Controller
+    |   |-- search_controller_test.go                # Unit Tests for Search Controller
+    |   |-- verification_controller_test.go          # Unit Tests for Verification Controller
+    |   |-- notification_controller_test.go          # Unit Tests for Notification Controller
+    |   |-- user_service_test.go                     # Unit Tests for User Service
+    |   |-- search_service_test.go                   # Unit Tests for Search Service
+    |   |-- verification_service_test.go             # Unit Tests for Verification Service
+    |   |-- notification_service_test.go             # Unit Tests for Notification Service
+    |
+    |-- main.go                                      # Main Application Entry Point
+    |-- go.mod                                      # Go Module File
+    |-- go.sum                                      # Go Module Dependencies Sum File
+```
+
+- `api/`: Contains the API-related components.
+  - `v1/`: Represents API version 1.
+    - `controllers/`: Houses the controller files responsible for handling HTTP requests and responses for different API endpoints.
+    - `routes/`: Defines API routes and their associated handlers.
+    - `validators/`: Contains validation logic for request data to ensure data integrity and security.
+  - `middleware/`: Contains middleware functions, such as authentication middleware.
+  - `models/`: Defines data models used throughout the application.
+  - `services/`: Houses the business logic and service implementations for various functionalities, such as user management and notifications.
+
+- `config/`: Stores configuration files for different environments (e.g., dev_config.yaml and prod_config.yaml) and a central configuration module (config.go) to manage environment-specific settings.
+
+- `database/`: Manages database-related components, including migrations for database schema updates (migrations/) and the database connection setup (database.go).
+
+- `firebase/`: Contains Firebase-related code, including Firebase Authentication Service (auth_service.go) and Firebase Realtime Database Service (database_service.go).
+
+- `email/`: Houses email-related services, such as the Email Service (email_service.go), Email Verification Service (verification_email.go), and Password Reset Email Service (password_reset_email.go).
+
+- `sms/`: Stores SMS-related services, including the SMS Service (sms_service.go) and SMS Verification Service (verification_sms.go).
+
+- `utils/`: Provides utility functions and helper methods that can be used across the application (helpers.go).
+
+- `main.go`: The main entry point of the application.
+
+- `go.mod` and `go.sum`: Go module files for managing dependencies.
+
+
+In this approach, the Firebase, email, and SMS service files are organized in their respective directories. This organization can be beneficial if:
+
+- Each service is relatively complex and involves multiple files.
+- I want to keep service-specific code well-isolated and organized.
+- I prefer a clear separation between different types of services.
+
+The current structure follows this approach, ensuring that service-specific code is organized within its respective directory for clarity and maintainability.
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -57,29 +172,11 @@ Before launching the User Service, make sure you have Go (Golang) installed on y
 
 ## Usage
 
-### Launching
+### Running the Server
 
-Windows
+To run the User Service on different environments, follow these instructions:
 
-To run the User Service on Windows, follow these steps:
-
-1. Open a command prompt.
-
-2. Navigate to the project directory:
-
-    ```
-    cd user-service
-    ```
-
-3. Build and run the application:
-
-    ```
-    go run main.go
-    ```
-
-Ubuntu
-
-To run the User Service on Ubuntu or a Linux-based system, follow these steps:
+#### Development Environment (Dev):
 
 1. Open a terminal.
 
@@ -95,11 +192,35 @@ To run the User Service on Ubuntu or a Linux-based system, follow these steps:
     $ go build -o user-service main.go
     ```
 
-4. Run the application:
+4. Run the server in development mode using the dev configuration:
 
     ```
-    $ ./user-service
+    $ ./user-service --config=config/dev_config.yaml
     ```
+
+####  Production Environment (Prod):
+
+1. Open a terminal.
+
+2. Navigate to the project directory:
+
+    ```
+    $ cd user-service
+    ```
+
+3. Build the application:
+
+    ```
+    $ go build -o user-service main.go
+    ```
+
+4. Run the server in production mode using the prod configuration:
+
+    ```
+    $ ./user-service --config=config/prod_config.yaml
+    ```
+
+These commands will launch the User Service with the specified configuration, whether in development or production mode. Be sure to customize the configurations in `dev_config.yaml` and `prod_config.yaml` to suit your environment settings.
 
 ### Functions
 
