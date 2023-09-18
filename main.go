@@ -7,17 +7,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	"user-service/config" // Import config package
-	"user-service/database"
+	v1 "user-service/api/v1/routes" // Import v1 package for API routes
+	"user-service/config"           // Import config package
+	"user-service/database"         // Import database package
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
 	// Parse the command-line argument for config file path
 	configFilePath := flag.String("config", "config/dev_config.yml", "Path to the configuration file")
 	flag.Parse()
+
+	// Check if the config file path contains "dev_config.yml"
+	isDevConfig := strings.Contains(*configFilePath, "dev_config.yml")
 
 	// Load the application configuration
 	cfg, err := config.LoadConfig(*configFilePath)
@@ -35,15 +41,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize the database: %v", err)
 	}
+
+	database.AutoMigrateTables(db)
+
 	defer database.CloseDB(db) // Close the database connection when the server exits
 
 	// Create a new router using Gorilla Mux.
 	router := mux.NewRouter()
 
-	// Define API routes here using router.HandleFunc.
+	// Register API routes
+	v1.RegisterRoutes(router, db)
 
-	// Example:
-	// router.HandleFunc("/api/v1/register", RegisterHandler).Methods("POST")
+	// Serve Swagger UI in the development environment only
+	if isDevConfig {
+		// Serve Swagger UI
+		router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"), // The url pointing to API definition
+		))
+	}
 
 	// Set up the server configuration.
 	host := cfg.GetHost()

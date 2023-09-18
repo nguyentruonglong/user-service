@@ -1,1 +1,3 @@
 // Search Controller
+
+package controllers

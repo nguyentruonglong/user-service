@@ -305,7 +305,19 @@ User Management APIs
 - Sample cURL Request:
 
 ```curl
-curl -X POST http://localhost:8080/api/v1/register -d '{"email": "user@example.com", "password": "secure_password"}'
+curl -X POST http://localhost:8080/api/v1/register -d '{
+  "email": "user@example.com",
+  "first_name": "John",
+  "middle_name": "Doe",
+  "last_name": "Smith",
+  "password": "secure_password",
+  "date_of_birth": "1990-01-01T00:00:00Z",
+  "phone_number": "1234567890",
+  "address": "1234 Elm St, Some City, Some Country",
+  "country": "Some Country",
+  "province": "Some Province",
+  "avatar_url": "http://example.com/avatar.jpg"
+}'
 ```
 
 #### 2. Email Verification
