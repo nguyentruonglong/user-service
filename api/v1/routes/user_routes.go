@@ -3,19 +3,18 @@
 package routes
 
 import (
-	"net/http"
 	"user-service/api/v1/controllers"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // RegisterRoutes sets up API routes for the user-related endpoints.
-func RegisterRoutes(router *mux.Router, db *gorm.DB) {
+func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
 	// Example route: Register a user
-	router.HandleFunc("/api/v1/register", func(w http.ResponseWriter, r *http.Request) {
-		controllers.RegisterUser(w, r, db)
-	}).Methods("POST")
+	router.POST("/api/v1/register", func(c *gin.Context) {
+		controllers.RegisterUser(c.Writer, c.Request, db)
+	})
 
 	// Add more routes for other user-related actions as needed
 }

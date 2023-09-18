@@ -1,1 +1,3 @@
 // Firebase Configuration
+
+package firebase

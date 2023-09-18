@@ -67,11 +67,18 @@ The User Service project is organized with a clear directory structure to promot
     |   |-- prod_config.yaml                          # Production Configuration
     |   |-- config.go                                # Configuration Module
     |
-    |-- database/
-    |   |-- migrations/
-    |   |   |-- 0001_initial_migration.go            # Initial Database Migration
-    |   |
+    |---database/
     |   |-- database.go                              # Database Connection
+    |   |   
+    |   \-- migrations/
+    |
+    |---docs
+    |   |-- docs.go                                  # Documentation Module
+    |   |-- swagger.json                             # Swagger JSON Configuration
+    |   |-- swagger.yaml                             # Swagger YAML Configuration
+    |   |   
+    |   \-- images/                                  # Image Resources for Documentation
+    |   \-- swagger/                                 # Swagger UI Assets
     |
     |-- firebase/
     |   |-- firebase.go                              # Firebase Configuration
@@ -176,6 +183,16 @@ Before launching the User Service, make sure you have Go (Golang) installed on y
 
    ```sh
     go mod tidy
+   ```
+
+5. Run swag init to generate the Swagger documentation. Navigate to your project's root directory and run:
+
+   ```sh
+    go install github.com/swaggo/swag/cmd/swag@latest
+   ```
+
+   ```sh
+    swag init
    ```
 
 ## Usage

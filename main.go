@@ -6,24 +6,25 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	v1 "user-service/api/v1/routes" // Import v1 package for API routes
 	"user-service/config"           // Import config package
 	"user-service/database"         // Import database package
+	_ "user-service/docs"           // Import docs
 
-	"github.com/gorilla/mux"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
-	// Parse the command-line argument for config file path
-	configFilePath := flag.String("config", "config/dev_config.yml", "Path to the configuration file")
+	// Parse the command-line argument for the config file path
+	configFilePath := flag.String("config", "config/dev_config.yaml", "Path to the configuration file")
 	flag.Parse()
 
-	// Check if the config file path contains "dev_config.yml"
-	isDevConfig := strings.Contains(*configFilePath, "dev_config.yml")
+	// Check if the config file path contains "dev_config.yaml"
+	isDevConfig := strings.Contains(*configFilePath, "dev_config.yaml")
 
 	// Load the application configuration
 	cfg, err := config.LoadConfig(*configFilePath)
@@ -46,8 +47,8 @@ func main() {
 
 	defer database.CloseDB(db) // Close the database connection when the server exits
 
-	// Create a new router using Gorilla Mux.
-	router := mux.NewRouter()
+	// Create a new router using Gin
+	router := gin.Default()
 
 	// Register API routes
 	v1.RegisterRoutes(router, db)
@@ -55,17 +56,18 @@ func main() {
 	// Serve Swagger UI in the development environment only
 	if isDevConfig {
 		// Serve Swagger UI
-		router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-			httpSwagger.URL("/swagger/doc.json"), // The url pointing to API definition
-		))
+		router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	// Set up the server configuration.
+	fmt.Println(isDevConfig)
+	// Set up the server configuration
 	host := cfg.GetHost()
 	port := cfg.GetHTTPPort()
 
-	// Start the HTTP server.
+	// Start the HTTP server
 	serverAddr := fmt.Sprintf("%s:%d", host, port)
-	fmt.Printf("Server is running on http://%s\n", serverAddr)
-	log.Fatal(http.ListenAndServe(serverAddr, router))
+
+	// Run the HTTP server using Gin's Run method
+	log.Printf("Server is running on http://%s\n", serverAddr)
+	log.Fatal(router.Run(serverAddr))
 }
