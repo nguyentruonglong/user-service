@@ -1,3 +1,3 @@
 // SMS Verification Service
 
-package sms
+package sms_services

@@ -1,3 +1,0 @@
-// Firebase Configuration
-
-package firebase

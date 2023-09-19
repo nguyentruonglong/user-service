@@ -1,8 +1,7 @@
-// Main Application Entry Point
-
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -12,13 +11,19 @@ import (
 	"user-service/config"           // Import config package
 	"user-service/database"         // Import database package
 	_ "user-service/docs"           // Import docs
+	"user-service/firebase_services"
 
+	firebase "firebase.google.com/go" // Import firebase package
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 )
 
 func main() {
+	var db *gorm.DB
+	var firebaseClient *firebase.App
+
 	// Parse the command-line argument for the config file path
 	configFilePath := flag.String("config", "config/dev_config.yaml", "Path to the configuration file")
 	flag.Parse()
@@ -37,21 +42,33 @@ func main() {
 	log.Printf("Host: %s", cfg.GetHost())
 	log.Printf("Database URL: %s", cfg.GetDatabaseURL())
 
-	// Initialize the database
-	db, err := database.InitDB(cfg.GetDatabaseURL())
-	if err != nil {
-		log.Fatalf("Failed to initialize the database: %v", err)
+	if cfg.MultipleDatabasesConfig.UseSQLite {
+		// Initialize the SQLite database
+		db, err = database.InitDB(cfg.GetDatabaseURL())
+		if err != nil {
+			log.Fatalf("Failed to initialize the database: %v", err)
+		}
+
+		database.AutoMigrateTables(db)
+
+		defer database.CloseDB(db) // Close the database connection when the server exits
+	} else if cfg.MultipleDatabasesConfig.UsePostgreSQL {
 	}
 
-	database.AutoMigrateTables(db)
-
-	defer database.CloseDB(db) // Close the database connection when the server exits
+	if cfg.MultipleDatabasesConfig.UseRealtimeDatabase {
+		// Initialize Firebase app
+		ctx := context.Background()
+		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg)
+		if err != nil {
+			log.Fatalf("Failed to initialize Firebase app: %v", err)
+		}
+	}
 
 	// Create a new router using Gin
 	router := gin.Default()
 
 	// Register API routes
-	v1.RegisterRoutes(router, db)
+	v1.RegisterRoutes(router, db, firebaseClient, cfg)
 
 	// Serve Swagger UI in the development environment only
 	if isDevConfig {
@@ -59,7 +76,6 @@ func main() {
 		router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	fmt.Println(isDevConfig)
 	// Set up the server configuration
 	host := cfg.GetHost()
 	port := cfg.GetHTTPPort()

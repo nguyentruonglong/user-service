@@ -1,3 +1,3 @@
 // Password Reset Email Service
 
-package email
+package email_services

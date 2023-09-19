@@ -1,3 +1,3 @@
 // Firebase Realtime Database Service
 
-package firebase
+package firebase_services

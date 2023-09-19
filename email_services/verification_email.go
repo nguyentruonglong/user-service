@@ -1,3 +1,3 @@
 // Email Verification Service
 
-package email
+package email_services

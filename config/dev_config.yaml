@@ -6,18 +6,46 @@ http_port: 8080
 # Host
 host: localhost
 
-# Database Configuration (SQLite)
-database:
+# Multiple Databases Configuration
+multiple_databases:
+  use_realtime_database: true
+  use_firestore: true
+  use_sqlite: true
+  use_postgresql: true
+
+# SQLite Configuration
+sqlite:
   driver: sqlite3
   connection_string: "development.sqlite3"
+
+# PostgreSQL Configuration
+postgresql:
+  host: "localhost"
+  port: 5432
+  user: "postgresql_user"
+  password: "postgresql_password"
+  dbname: "postgresql_dbname"
 
 # Firebase Configuration
 firebase:
   api_key: "firebase_api_key"
-  project_id: "firebase_project_id"
-  storage_bucket: "firebase_storage_bucket"
+  project_id: "user-service-9ca7a"
+  storage_bucket: ""
   auth_domain: "firebase_auth_domain"
-  database_url: "https://firebase-database-url.firebaseio.com"
+  database_url: "https://user-service-9ca7a-default-rtdb.firebaseio.com"
+  service_account_key: '{
+  "type": "service_account",
+  "project_id": "user-service-9ca7a",
+  "private_key_id": "f36f96a290ae225140e1ffd0573e141398d7d3bd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCfqsIMPhsJrzJ1\nPBUAV7gfJG6kJdrhiboLWKno5uMZEuKvOMRszQ6ukueCFv+KWLCywr1irS3VckPw\nNfYtomLKj+kq1GQO+Sqr4b7g0NrYhQe5/8MDPdIjHDq4Q0jKDTR0BVJgVZcJI7l5\nCFNBUhaX+oWZk1RZ3rLxC4i9dEyJdDQxnWsxSPku3i0ROmtWpk7ufmOZM3FvgNc/\nuHaV2PTEnAy1/kxklHqcFHM/l3O13oRg/pyjgDgNXNHOcAD6ddtJ4TI8UeeVPHEe\njpzHUR3LOO1NPUVIS4DyisKuhLb3Upp904YvDq0LeeAdU/QL9z4oyWa/upjNaYej\n31WIJ0N7AgMBAAECggEABSU7m6lktasvtRd6lcg95sMFzcRqiVom5La2wwqtxuEU\n7RCnQ9pX3shdLZQQKCUzjI86CzQJhhdomRUkGdRh2qVInli54MGm3mMoA5a3dsLS\nvOvBHRmg7AC847NHZTuHtTV2siQP+ftsvrnF9RTwJXWtWIWm8j57BcmZXoGg9cz7\n2IBnUEalmrUS3uftFQ8hdQ0swqpIWTfObektCoK6H6lHFIMIpFTQhIqjMOqvflk7\n9ZYm5o5GL6Y0Ttj9AKFjtmkjMmIstSWJyRPawpve6v1bheRQ/XNsZESXnrGIc/B+\n5TQpE/Uk7A6Ek0pu8kS8Ex8TzYksJLafA0EqkSy0AQKBgQDPuo9In6D51cMLO6/7\nO0wUJaHp6uAO/dsen/rR4BHHWGY5Q5xES5ImAr+/O25xL+gDt3fdf9ocSw1l/D2C\nLwkfFalgZYvWa3d9fxGh4UVJrBl6MqclDe/JPkyX/V79OWmHADQJLfFNIWrf/YK/\nCgsM9OpT4BZGVvvFMlUy+UxNaQKBgQDExRXqPoJvqzSjSoj8G8++KA6uEGGQkKis\nS2zM/ZBQCtQKBI0LFXBJxJW0jh1S4f7zOrmYwBzOb1qT752qPBrBE6FSYcJMZZ5L\nEEJVREXTSj2wxUXGzTedj0ZsO6yd7U+FOV+yUsjnhruHqaJj8+aTKNKZGjC5gbri\nN1YJD+nZQwKBgQDCD66WERLI88tf7iXslavwUmvd5N/nAX84MAqZETRqwAnXy3Ls\nVpE1U3Igy/vUYAXnmvmvAycXMYJV2Xz45solsQ3oEVW/PeyGYDRvv80EE3RFtZZy\nxn9RyRKzFzArbvxH84epX7NC9Eos8V+460ABnbhgHUOR+OcChZAUq9N9qQKBgQDA\nwXCeb23Hhqeh7roSfgwb85Gt4k4xGASkA58pkJt2TaU5ywt/+BhvqywcG7uOHeVq\nz/RQNqIBeAP7N5fz071BtsEpuqpjvIg8cEkKzj64pNmZ+SZJgW8h4eDS1gJbEsX7\ndCDSx1YXuFysoPh7gco2Dp9/a7CfiP5R7HNTnUsvkQKBgQCAngc68Ze3JVPX6vuc\nx0Y4rVw+ETTvecyuXsaCJOdsWOkRz2mYSKY1Q8wsEm+zBiiflDr4uucbCIKNNHOi\n9shPK+hdoL3BqFd+P+ySFwZy/D/bjX4Ee6D5ma/fsVJHXVQwZht5YTCUqRt9/6G5\nWhmxfYC1Pnmqqxy4Y1VAeCyopg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-y9mz9@user-service-9ca7a.iam.gserviceaccount.com",
+  "client_id": "106310012393830454299",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-y9mz9%40user-service-9ca7a.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}'
 
 # Email Configuration
 email:
