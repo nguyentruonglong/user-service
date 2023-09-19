@@ -22,7 +22,7 @@ type User struct {
 	gorm.Model
 	Email                       string    `gorm:"primaryKey;unique;not null" json:"email"`
 	FirstName                   string    `json:"first_name" gorm:"not null"`
-	MiddleName                  *string   `json:"middle_name"`
+	MiddleName                  string    `json:"middle_name"`
 	LastName                    string    `json:"last_name" gorm:"not null"`
 	PasswordHash                string    `json:"password_hash"`
 	IsActive                    bool      `json:"is_active" gorm:"default:true"`
@@ -46,7 +46,7 @@ type User struct {
 type UserRegisterInput struct {
 	Email       string    `json:"email"`
 	FirstName   string    `json:"first_name"`
-	MiddleName  *string   `json:"middle_name"`
+	MiddleName  string    `json:"middle_name"`
 	LastName    string    `json:"last_name"`
 	Password    string    `json:"password"`
 	DateOfBirth time.Time `json:"date_of_birth"`
@@ -111,14 +111,23 @@ func generateVerificationCode() string {
 	return "123456"
 }
 
-// SetPassword sets the password for the user after hashing it securely.
-func (u *User) SetPassword(password string) error {
+// HashPassword hashes the given password and returns the hashed password as a string.
+func HashPassword(password string) (string, error) {
 	// Hash the password using bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
+}
+
+// SetPassword sets the hashed password for the user.
+func (u *User) SetPassword(password string) error {
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
 		return err
 	}
-	u.PasswordHash = string(hashedPassword)
+	u.PasswordHash = hashedPassword
 	return nil
 }
 

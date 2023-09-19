@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 	"user-service/api/models"
 	"user-service/api/v1/validators"
 	"user-service/config"
+	"user-service/utils"
 
 	firebase "firebase.google.com/go"
 
@@ -131,18 +133,30 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			return
 		}
 
+		hashedPassword, _ := models.HashPassword(input.Password) // Hash input password
+
 		// Convert the user struct to a map
 		userMap := map[string]interface{}{
-			"email":         input.Email,
-			"first_name":    input.FirstName,
-			"middle_name":   input.MiddleName,
-			"last_name":     input.LastName,
-			"date_of_birth": input.DateOfBirth,
-			"phone_number":  input.PhoneNumber,
-			"address":       input.Address,
-			"country":       input.Country,
-			"province":      input.Province,
-			"avatar_url":    input.AvatarURL,
+			"email":                          input.Email,
+			"first_name":                     input.FirstName,
+			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""),
+			"last_name":                      input.LastName,
+			"date_of_birth":                  input.DateOfBirth,
+			"phone_number":                   input.PhoneNumber,
+			"address":                        utils.GetStringOrDefault(&input.Address, ""),
+			"country":                        utils.GetStringOrDefault(&input.Country, ""),
+			"province":                       utils.GetStringOrDefault(&input.Province, ""),
+			"avatar_url":                     utils.GetStringOrDefault(&input.AvatarURL, ""),
+			"password_hash":                  hashedPassword,                     // Add default password hash value
+			"is_active":                      utils.GetBoolOrDefault(nil, true),  // Add default is_active value
+			"email_verification_code":        utils.GetStringOrDefault(nil, ""),  // Add default email_verification_code value
+			"phone_number_verification_code": utils.GetStringOrDefault(nil, ""),  // Add default phone_number_verification_code value
+			"is_email_verified":              utils.GetBoolOrDefault(nil, false), // Add default is_email_verified value
+			"is_phone_number_verified":       utils.GetBoolOrDefault(nil, false), // Add default is_phone_number_verified value
+			"earned_points":                  utils.GetIntOrDefault(nil, 0),      // Add default earned_points value
+			"extra_info":                     utils.GetOrDefaultJSON(nil, "{}"),  // Add default extra_info value
+			"created_at":                     time.Now(),                         // Add default created_at value
+			"updated_at":                     time.Now(),                         // Add default updated_at value
 		}
 
 		if cfg.MultipleDatabasesConfig.UseRealtimeDatabase {
