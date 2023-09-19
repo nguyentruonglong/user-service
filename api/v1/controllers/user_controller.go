@@ -1,5 +1,3 @@
-// User Controller
-
 package controllers
 
 import (
@@ -8,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"user-service/api/errors"
 	"user-service/api/models"
 	"user-service/api/v1/validators"
 	"user-service/config"
@@ -18,27 +17,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// @Summary Register a new user
-// @Description Register a new user with the given email and password.
-// @Accept json
-// @Produce json
-// @Param email body string true "Email (required)"
-// @Param password body string true "Password (required)"
-// @Param first_name body string false "First Name (required)"
-// @Param middle_name body string false "Middle Name (optional)"
-// @Param last_name body string false "Last Name (required)"
-// @Param date_of_birth body string false "Date of Birth (optional) (YYYY-MM-DD)"
-// @Param phone_number body string false "Phone Number (optional)"
-// @Param address body string false "Address (optional)"
-// @Param country body string false "Country (optional)"
-// @Param province body string false "Province (optional)"
-// @Param avatar_url body string false "Avatar URL (optional)"
-// @Success 201 {object} models.UserResponse
-// @Failure 400 {object} models.UserResponse
-// @Failure 409 {object} models.UserResponse
-// @Failure 500 {object} models.UserResponse
-// @Router /api/v1/register [post]
-
 // RegisterUser registers a new user and creates an object in the specified database
 func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
 	// Start a transaction
@@ -48,7 +26,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			http.Error(w, "Transaction failed", http.StatusInternalServerError)
+			errors.ErrorResponseJSON(w, errors.ErrTransactionFailed, http.StatusInternalServerError)
 		}
 	}()
 
@@ -56,26 +34,26 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	var input models.UserRegisterInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		errors.ErrorResponseJSON(w, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
 	err = validators.ValidateUserRegisterInput(input.Email, input.Password)
 	if err != nil {
-		http.Error(w, "Invalid input: "+err.Error(), http.StatusBadRequest)
+		errors.ErrorResponseJSON(w, errors.ErrInvalidInput, http.StatusBadRequest)
 		return
 	}
 
 	// Check if the email already exists
 	if emailExists(tx, input.Email) {
-		http.Error(w, "Email already exists", http.StatusConflict)
+		errors.ErrorResponseJSON(w, errors.ErrEmailExists, http.StatusConflict)
 		return
 	}
 
 	// Check if the phone number already exists
 	if phoneNumberExists(tx, input.PhoneNumber) {
-		http.Error(w, "Phone number already exists", http.StatusConflict)
+		errors.ErrorResponseJSON(w, errors.ErrPhoneNumberExists, http.StatusConflict)
 		return
 	}
 
@@ -97,7 +75,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	err = user.SetPassword(input.Password)
 	if err != nil {
 		tx.Rollback()
-		http.Error(w, "Failed to set the password", http.StatusInternalServerError)
+		errors.ErrorResponseJSON(w, errors.ErrFailedToSetPassword, http.StatusInternalServerError)
 		return
 	}
 
@@ -106,19 +84,19 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
-			http.Error(w, "Failed to save user to the SQLite database", http.StatusInternalServerError)
+			errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserSQLite, http.StatusInternalServerError)
 			return
 		}
 	} else if cfg.MultipleDatabasesConfig.UsePostgreSQL {
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
-			http.Error(w, "Failed to save user to the PostgreSQL database", http.StatusInternalServerError)
+			errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserPostgreSQL, http.StatusInternalServerError)
 			return
 		}
 		// TODO: Insert into PostgreSQL database
 	} else {
-		http.Error(w, "No valid database selected", http.StatusBadRequest)
+		errors.ErrorResponseJSON(w, errors.ErrNoValidDatabaseSelected, http.StatusBadRequest)
 		return
 	}
 
@@ -129,25 +107,25 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 		client, err := firebaseClient.Database(ctx)
 		if err != nil {
 			tx.Rollback()
-			http.Error(w, "Failed to get Firebase database client", http.StatusInternalServerError)
+			errors.ErrorResponseJSON(w, errors.ErrFailedToGetFirebaseClient, http.StatusInternalServerError)
 			return
 		}
 
-		hashedPassword, _ := models.HashPassword(input.Password) // Hash input password
+		hashedPassword, _ := models.HashPassword(input.Password) // Hash the input password
 
 		// Convert the user struct to a map
 		userMap := map[string]interface{}{
 			"email":                          input.Email,
 			"first_name":                     input.FirstName,
-			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""),
+			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""), // Add default middle_name value
 			"last_name":                      input.LastName,
 			"date_of_birth":                  input.DateOfBirth,
 			"phone_number":                   input.PhoneNumber,
-			"address":                        utils.GetStringOrDefault(&input.Address, ""),
-			"country":                        utils.GetStringOrDefault(&input.Country, ""),
-			"province":                       utils.GetStringOrDefault(&input.Province, ""),
-			"avatar_url":                     utils.GetStringOrDefault(&input.AvatarURL, ""),
-			"password_hash":                  hashedPassword,                     // Add default password hash value
+			"address":                        utils.GetStringOrDefault(&input.Address, ""),   // Add default address value
+			"country":                        utils.GetStringOrDefault(&input.Country, ""),   // Add default country value
+			"province":                       utils.GetStringOrDefault(&input.Province, ""),  // Add default province value
+			"avatar_url":                     utils.GetStringOrDefault(&input.AvatarURL, ""), // Add default avatar_url value
+			"password_hash":                  hashedPassword,
 			"is_active":                      utils.GetBoolOrDefault(nil, true),  // Add default is_active value
 			"email_verification_code":        utils.GetStringOrDefault(nil, ""),  // Add default email_verification_code value
 			"phone_number_verification_code": utils.GetStringOrDefault(nil, ""),  // Add default phone_number_verification_code value
@@ -165,7 +143,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			newUserRef, err := ref.Push(context.Background(), userMap)
 			if err != nil {
 				tx.Rollback()
-				http.Error(w, "Failed to save user to Firebase Realtime Database", http.StatusInternalServerError)
+				errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserFirebaseRTDB, http.StatusInternalServerError)
 				return
 			}
 
