@@ -13,6 +13,7 @@ import (
 	"user-service/utils"
 
 	firebase "firebase.google.com/go"
+	"firebase.google.com/go/db"
 
 	"gorm.io/gorm"
 )
@@ -111,6 +112,21 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			return
 		}
 
+		exists, err := emailExistsInFirebase(client, input.Email)
+		if err != nil {
+			tx.Rollback()
+			// Handle case where there was an error checking email existence in Firebase
+			errors.ErrorResponseJSON(w, errors.ErrFailedToCheckEmailExistence, http.StatusInternalServerError)
+			return
+		}
+
+		if exists {
+			tx.Rollback()
+			// Handle case where email already exists in Firebase
+			errors.ErrorResponseJSON(w, errors.ErrEmailAlreadyExistsOnFirebase, http.StatusConflict)
+			return
+		}
+
 		hashedPassword, _ := models.HashPassword(input.Password) // Hash the input password
 
 		// Convert the user struct to a map
@@ -172,14 +188,34 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 
 // Function to check if email already exists in the database
 func emailExists(db *gorm.DB, email string) bool {
-	var user models.User
-	err := db.Where("email = ?", email).First(&user).Error
-	return err == nil
+	var count int64
+	db.Model(&models.User{}).Where("email = ? AND deleted_at IS NULL", email).Count(&count)
+	return count > 0
 }
 
 // Function to check if phone number already exists in the database
 func phoneNumberExists(db *gorm.DB, phoneNumber string) bool {
-	var user models.User
-	err := db.Where("phone_number = ?", phoneNumber).First(&user).Error
-	return err == nil
+	var count int64
+	db.Model(&models.User{}).Where("phone_number = ? AND deleted_at IS NULL", phoneNumber).Count(&count)
+	return count > 0
+}
+
+// Function to checks if an email already exists in the Firebase Realtime Database
+func emailExistsInFirebase(client *db.Client, email string) (bool, error) {
+	ctx := context.Background()
+
+	// Get a reference to the users node in the Firebase Realtime Database
+	ref := client.NewRef("users")
+
+	// Query to check if the email exists
+	query := ref.OrderByChild("email").EqualTo(email)
+
+	// Get the result of the query
+	results, err := query.GetOrdered(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	// Check if there are any results
+	return len(results) > 0, nil
 }

@@ -3,43 +3,38 @@
 package models
 
 import (
-	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-var (
-	ErrInvalidInput       = errors.New("invalid input provided")
-	ErrInvalidEmail       = errors.New("invalid email format")
-	ErrWeakPassword       = errors.New("weak password")
-	ErrInvalidPhoneNumber = errors.New("invalid phone number format")
-)
-
 // User represents a user in the system.
 type User struct {
 	gorm.Model
-	Email                       string    `gorm:"primaryKey;unique;not null" json:"email"`
-	FirstName                   string    `json:"first_name" gorm:"not null"`
-	MiddleName                  string    `json:"middle_name"`
-	LastName                    string    `json:"last_name" gorm:"not null"`
-	PasswordHash                string    `json:"password_hash"`
-	IsActive                    bool      `json:"is_active" gorm:"default:true"`
-	EmailVerificationCode       string    `json:"email_verification_code"`
-	PhoneNumberVerificationCode string    `json:"phone_number_verification_code"`
-	DateOfBirth                 time.Time `json:"date_of_birth"`
-	PhoneNumber                 string    `json:"phone_number"`
-	Address                     string    `json:"address"`
-	IsEmailVerified             bool      `json:"is_email_verified" gorm:"default:false"`
-	IsPhoneNumberVerified       bool      `json:"is_phone_number_verified" gorm:"default:false"`
-	Country                     string    `json:"country"`
-	Province                    string    `json:"province"`
-	AvatarURL                   string    `json:"avatar_url"`
-	EarnedPoints                int       `json:"earned_points" gorm:"default:0"`
-	ExtraInfo                   string    `json:"extra_info" gorm:"type:jsonb;default:'{}'"`
-	CreatedAt                   time.Time `json:"created_at"`
-	UpdatedAt                   time.Time `json:"updated_at"`
+	Email                       string     `gorm:"primaryKey;unique;not null" json:"email"`
+	FirstName                   string     `json:"first_name" gorm:"not null"`
+	MiddleName                  string     `json:"middle_name"`
+	LastName                    string     `json:"last_name" gorm:"not null"`
+	PasswordHash                string     `json:"password_hash"`
+	IsActive                    bool       `json:"is_active" gorm:"default:true"`
+	EmailVerificationCode       string     `json:"email_verification_code"`
+	PhoneNumberVerificationCode string     `json:"phone_number_verification_code"`
+	DateOfBirth                 time.Time  `json:"date_of_birth"`
+	PhoneNumber                 string     `json:"phone_number"`
+	Address                     string     `json:"address"`
+	IsEmailVerified             bool       `json:"is_email_verified" gorm:"default:false"`
+	IsPhoneNumberVerified       bool       `json:"is_phone_number_verified" gorm:"default:false"`
+	Country                     string     `json:"country"`
+	Province                    string     `json:"province"`
+	AvatarURL                   string     `json:"avatar_url"`
+	EarnedPoints                int        `json:"earned_points" gorm:"default:0"`
+	ExtraInfo                   string     `json:"extra_info" gorm:"type:jsonb;default:'{}'"`
+	CreatedAt                   time.Time  `json:"created_at"`
+	UpdatedAt                   time.Time  `json:"updated_at"`
+	DeletedAt                   *time.Time `gorm:"index"`
+	Roles                       []Role     `gorm:"many2many:user_roles;default:null"`  // Define a many-to-many relationship with roles
+	Groups                      []Group    `gorm:"many2many:user_groups;default:null"` // Define a many-to-many relationship with groups
 }
 
 // UserRegisterInput represents the input for user registration.

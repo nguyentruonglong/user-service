@@ -8,8 +8,8 @@ host: localhost
 
 # Multiple Databases Configuration
 multiple_databases:
-  use_realtime_database: true
-  use_firestore: true
+  use_realtime_database: false
+  use_firestore: false
   use_sqlite: true
   use_postgresql: true
 

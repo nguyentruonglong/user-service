@@ -11,7 +11,16 @@ var (
 	ErrInvalidRequestPayload = errors.New("invalid request payload")
 
 	// ErrInvalidInput occurs when the input provided is invalid.
-	ErrInvalidInput = errors.New("invalid input")
+	ErrInvalidInput = errors.New("invalid input provided")
+
+	// ErrInvalidEmail is returned for invalid email format provided
+	ErrInvalidEmail = errors.New("invalid email format provided")
+
+	// ErrWeakPassword is returned for weak password provided
+	ErrWeakPassword = errors.New("weak password provided")
+
+	// ErrInvalidPhoneNumber is returned for invalid phone number format provided
+	ErrInvalidPhoneNumber = errors.New("invalid phone number format provided")
 
 	// ErrEmailExists occurs when the email already exists.
 	ErrEmailExists = errors.New("email already exists")
@@ -36,4 +45,10 @@ var (
 
 	// ErrFailedToSaveUserFirebaseRTDB occurs when saving a user to Firebase Realtime Database fails.
 	ErrFailedToSaveUserFirebaseRTDB = errors.New("failed to save user to Firebase Realtime Database")
+
+	// ErrFailedToCheckEmailExistence is an error when checking email existence in Firebase.
+	ErrFailedToCheckEmailExistence = errors.New("failed to check email existence")
+
+	// ErrEmailAlreadyExistsOnFirebase is an error when the email already exists in Firebase.
+	ErrEmailAlreadyExistsOnFirebase = errors.New("email already exists in Firebase")
 )
