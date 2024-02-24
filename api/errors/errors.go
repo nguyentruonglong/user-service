@@ -51,4 +51,10 @@ var (
 
 	// ErrEmailAlreadyExistsOnFirebase is an error when the email already exists in Firebase.
 	ErrEmailAlreadyExistsOnFirebase = errors.New("email already exists in Firebase")
+
+	// ErrAuthenticationFailed is an error when user authentication fails.
+	ErrAuthenticationFailed = errors.New("authentication failed")
+
+	// ErrTokenGenerationFailed is an error when token generation fails.
+	ErrTokenGenerationFailed = errors.New("token generation failed")
 )

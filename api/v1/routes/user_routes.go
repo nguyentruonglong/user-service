@@ -19,5 +19,10 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.Ap
 		controllers.RegisterUser(c.Writer, c.Request, db, firebaseClient, cfg)
 	})
 
+	// Login route: Log in and obtain a Bearer token
+	router.POST("/api/v1/login", func(c *gin.Context) {
+		controllers.LoginUser(c.Writer, c.Request, db, firebaseClient, cfg)
+	})
+
 	// Add more routes for other user-related actions as needed
 }

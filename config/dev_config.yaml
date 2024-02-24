@@ -2,9 +2,13 @@
 
 # HTTP Port
 http_port: 8080
+https_port: 443
 
 # Host
 host: localhost
+
+# JWT Secret Key
+jwt_secret_key: "mVMjmyFIFrtbqTC41X5pYpnSE7AKyMC3dmUt"
 
 # Multiple Databases Configuration
 multiple_databases:

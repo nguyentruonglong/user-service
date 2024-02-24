@@ -58,6 +58,12 @@ type UserLoginInput struct {
 	Password string `json:"password"`
 }
 
+// UserLoginResponse represents the response structure for a successful user login.
+type UserLoginResponse struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
 // UserResetPasswordInput represents the input for resetting the user's password.
 type UserResetPasswordInput struct {
 	Email string `json:"email"`

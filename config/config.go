@@ -13,6 +13,7 @@ type AppConfig struct {
 	HTTPPort                int                     `mapstructure:"http_port"`
 	HTTPSPort               int                     `mapstructure:"https_port"`
 	Host                    string                  `mapstructure:"host"`
+	JWTSecretKey            string                  `mapstructure:"jwt_secret_key"`
 	MultipleDatabasesConfig MultipleDatabasesConfig `mapstructure:"multiple_databases"`
 	SQLiteConfig            SQLiteConfig            `mapstructure:"sqlite"`
 	PostgreSQLConfig        PostgreSQLConfig        `mapstructure:"postgresql"`
@@ -123,6 +124,10 @@ func (c *AppConfig) GetHost() string {
 		return "localhost"
 	}
 	return c.Host
+}
+
+func (c *AppConfig) GetJWTSecretKey() string {
+	return c.JWTSecretKey
 }
 
 func (c *AppConfig) PostgreSQLConnectionString() string {
