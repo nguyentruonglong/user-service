@@ -42,7 +42,7 @@ func main() {
 	log.Printf("Host: %s", cfg.GetHost())
 	log.Printf("Database URL: %s", cfg.GetDatabaseURL())
 
-	if cfg.MultipleDatabasesConfig.UseSQLite {
+	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
 		// Explicitly open and close the database to ensure it's created
 		db, err = database.InitDB(cfg.GetDatabaseURL())
 		if err != nil {
@@ -52,10 +52,10 @@ func main() {
 
 		// Perform any necessary migrations
 		database.AutoMigrateTables(db)
-	} else if cfg.MultipleDatabasesConfig.UsePostgreSQL {
+	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
 	}
 
-	if cfg.MultipleDatabasesConfig.UseRealtimeDatabase {
+	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
 		// Initialize Firebase app
 		ctx := context.Background()
 		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg)

@@ -59,8 +59,11 @@ var (
 	ErrTokenGenerationFailed = errors.New("token generation failed")
 
 	// ErrUnauthorized occurs when a request is unauthorized.
-	ErrUnauthorized = errors.New("unauthorized")
+	ErrUnauthorized = errors.New("authentication failed or insufficient permissions")
 
 	// ErrDatabaseOperationFailed occurs when a database operation fails.
 	ErrDatabaseOperationFailed = errors.New("database operation failed")
+
+	// ErrInvalidToken is returned when the provided token is invalid.
+	ErrInvalidToken = errors.New("invalid token")
 )

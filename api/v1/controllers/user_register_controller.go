@@ -80,14 +80,14 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	}
 
 	// Save the user to the appropriate database based on the config
-	if cfg.MultipleDatabasesConfig.UseSQLite {
+	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
 			errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserSQLite, http.StatusInternalServerError)
 			return
 		}
-	} else if cfg.MultipleDatabasesConfig.UsePostgreSQL {
+	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
@@ -101,7 +101,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	}
 
 	// Initialize Firebase app if configured to use Firebase
-	if cfg.MultipleDatabasesConfig.UseRealtimeDatabase || cfg.MultipleDatabasesConfig.UseFirestore {
+	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() || cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
 		ctx := context.Background()
 		// Get a Firebase database client
 		client, err := firebaseClient.Database(ctx)
@@ -152,7 +152,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			"updated_at":                     time.Now(),                         // Add default updated_at value
 		}
 
-		if cfg.MultipleDatabasesConfig.UseRealtimeDatabase {
+		if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
 			// Push the user data to Firebase Realtime Database
 			ref := client.NewRef("users")
 			newUserRef, err := ref.Push(context.Background(), userMap)
@@ -167,7 +167,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			log.Printf("Firebase Key: %s", firebaseKey)
 		}
 
-		if cfg.MultipleDatabasesConfig.UseFirestore {
+		if cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
 			// TODO: Implement Firestore insertion
 		}
 	}

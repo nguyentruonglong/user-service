@@ -3,6 +3,7 @@
 package routes
 
 import (
+	"user-service/api/middlewares"
 	"user-service/api/v1/controllers"
 
 	"user-service/config"
@@ -25,8 +26,8 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.Ap
 	})
 
 	// Logout route: Log out and invalidate Bearer token
-	router.POST("/api/v1/logout", func(c *gin.Context) {
-		controllers.LogoutUser(c.Writer, c.Request, db, firebaseClient, cfg)
+	router.POST("/api/v1/logout", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
+		controllers.LogoutUser(c, db, firebaseClient, cfg)
 	})
 
 	// Add more routes for other user-related actions as needed

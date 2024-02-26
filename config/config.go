@@ -95,32 +95,14 @@ func LoadConfig(configFilePath string) (*AppConfig, error) {
 	return cfg, nil
 }
 
-func (c *AppConfig) GetDatabaseURL() string {
-	if c.MultipleDatabasesConfig.UseSQLite {
-		return c.SQLiteConfig.ConnectionString
-	} else if c.MultipleDatabasesConfig.UsePostgreSQL {
-		return c.PostgreSQLConnectionString()
-	}
-	// Default to SQLite if neither is specified
-	return c.SQLiteConfig.ConnectionString
-}
+// General Configuration Functions
 
-func (c *AppConfig) GetFirebaseURL() string {
-	return c.FirebaseConfig.DatabaseURL
-}
-
-func (c *AppConfig) GetEmailServiceConfig() EmailConfig {
-	return c.EmailConfig
-}
-
-func (c *AppConfig) GetSMSServiceConfig() SMSConfig {
-	return c.SMSConfig
-}
-
+// GetHTTPPort returns the configured HTTP port.
 func (c *AppConfig) GetHTTPPort() int {
 	return c.HTTPPort
 }
 
+// GetHost returns the configured host.
 func (c *AppConfig) GetHost() string {
 	if c.Host == "" {
 		return "localhost"
@@ -128,15 +110,192 @@ func (c *AppConfig) GetHost() string {
 	return c.Host
 }
 
+// GetJWTSecretKey returns the configured JWT secret key.
 func (c *AppConfig) GetJWTSecretKey() string {
 	return c.JWTSecretKey
 }
 
+// GetJWTExpiration returns the configured JWT expiration duration.
 func (c *AppConfig) GetJWTExpiration() time.Duration {
 	return c.JWTExpiration
 }
 
-func (c *AppConfig) PostgreSQLConnectionString() string {
+// Database Configuration Functions
+
+// GetDatabaseURL returns the database URL based on the configured database type.
+func (c *AppConfig) GetDatabaseURL() string {
+	if c.GetMultipleDatabasesConfig().GetUseSQLite() {
+		return c.GetSQLiteConfig().GetConnectionString()
+	} else if c.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+		return c.GetPostgreSQLConfig().GetPostgreSQLConnectionString()
+	}
+
+	// Default to SQLite if neither is specified
+	return c.SQLiteConfig.ConnectionString
+}
+
+// GetMultipleDatabasesConfig returns a pointer to the configuration for multiple databases.
+func (c *AppConfig) GetMultipleDatabasesConfig() *MultipleDatabasesConfig {
+	return &c.MultipleDatabasesConfig
+}
+
+// GetUseSQLite returns the UseSQLite configuration.
+func (c *MultipleDatabasesConfig) GetUseSQLite() bool {
+	return c.UseSQLite
+}
+
+// GetUsePostgreSQL returns the UsePostgreSQL configuration.
+func (c *MultipleDatabasesConfig) GetUsePostgreSQL() bool {
+	return c.UsePostgreSQL
+}
+
+// GetUseRealtimeDatabase returns the UseRealtimeDatabase configuration.
+func (c *MultipleDatabasesConfig) GetUseRealtimeDatabase() bool {
+	return c.UseRealtimeDatabase
+}
+
+// GetUseFirestore returns the UseFirestore configuration.
+func (c *MultipleDatabasesConfig) GetUseFirestore() bool {
+	return c.UseFirestore
+}
+
+// SQLite Configuration Functions
+
+// GetSQLiteConfig returns the SQLite configuration.
+func (c *AppConfig) GetSQLiteConfig() *SQLiteConfig {
+	return &c.SQLiteConfig
+}
+
+// GetSQLiteConfig returns the SQLite Connection String configuration.
+func (c *SQLiteConfig) GetConnectionString() string {
+	return c.ConnectionString
+}
+
+// PostgreSQL Configuration Functions
+
+// GetPostgreSQLConfig returns the PostgreSQL configuration.
+func (c *AppConfig) GetPostgreSQLConfig() *PostgreSQLConfig {
+	return &c.PostgreSQLConfig
+}
+
+// GetHost returns the PostgreSQL host configuration.
+func (c *PostgreSQLConfig) GetHost() string {
+	return c.Host
+}
+
+// GetPort returns the PostgreSQL port configuration.
+func (c *PostgreSQLConfig) GetPort() int {
+	return c.Port
+}
+
+// GetUser returns the PostgreSQL user configuration.
+func (c *PostgreSQLConfig) GetUser() string {
+	return c.User
+}
+
+// GetPassword returns the PostgreSQL password configuration.
+func (c *PostgreSQLConfig) GetPassword() string {
+	return c.Password
+}
+
+// GetDbname returns the PostgreSQL dbname configuration.
+func (c *PostgreSQLConfig) GetDbname() string {
+	return c.Dbname
+}
+
+// GetPostgreSQLConnectionString returns the PostgreSQL connection string configuration.
+func (c *PostgreSQLConfig) GetPostgreSQLConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		c.PostgreSQLConfig.Host, c.PostgreSQLConfig.Port, c.PostgreSQLConfig.User, c.PostgreSQLConfig.Password, c.PostgreSQLConfig.Dbname)
+		c.GetHost(), c.GetPort(), c.GetUser(), c.GetPassword(), c.GetDbname())
+}
+
+// Firebase Configuration Functions
+
+// GetFirebaseConfig returns the Firebase configuration.
+func (c *AppConfig) GetFirebaseConfig() *FirebaseConfig {
+	return &c.FirebaseConfig
+}
+
+// GetFirebaseURL returns the Firebase database URL.
+func (c *AppConfig) GetFirebaseURL() string {
+	return c.FirebaseConfig.DatabaseURL
+}
+
+// GetAPIKey returns the Firebase API Key configuration.
+func (c *FirebaseConfig) GetAPIKey() string {
+	return c.APIKey
+}
+
+// GetProjectID returns the Firebase Project ID configuration.
+func (c *FirebaseConfig) GetProjectID() string {
+	return c.ProjectID
+}
+
+// GetStorageBucket returns the Firebase Storage Bucket configuration.
+func (c *FirebaseConfig) GetStorageBucket() string {
+	return c.StorageBucket
+}
+
+// GetAuthDomain returns the Firebase Auth Domain configuration.
+func (c *FirebaseConfig) GetAuthDomain() string {
+	return c.AuthDomain
+}
+
+// GetDatabaseURL returns the Firebase Database URL configuration.
+func (c *FirebaseConfig) GetDatabaseURL() string {
+	return c.DatabaseURL
+}
+
+// GetServiceAccountKey returns the Firebase Service Account Key configuration.
+func (c *FirebaseConfig) GetServiceAccountKey() string {
+	return c.ServiceAccountKey
+}
+
+// Email Configuration Functions
+
+// GetEmailConfig returns the email service configuration.
+func (c *AppConfig) GetEmailConfig() *EmailConfig {
+	return &c.EmailConfig
+}
+
+// GetSMTPServer returns the SMTP server configuration.
+func (c *EmailConfig) GetSMTPServer() string {
+	return c.SMTPServer
+}
+
+// GetSMTPPort returns the SMTP port configuration.
+func (c *EmailConfig) GetSMTPPort() int {
+	return c.SMTPPort
+}
+
+// GetSMTPUser returns the SMTP user configuration.
+func (c *EmailConfig) GetSMTPUser() string {
+	return c.SMTPUser
+}
+
+// GetSMTPPassword returns the SMTP password configuration.
+func (c *EmailConfig) GetSMTPPassword() string {
+	return c.SMTPPassword
+}
+
+// SMS Configuration Functions
+
+// GetSMSConfig returns the SMS service configuration.
+func (c *AppConfig) GetSMSConfig() *SMSConfig {
+	return &c.SMSConfig
+}
+
+// GetTwilioAccountSID returns the Twilio Account SID configuration.
+func (c *SMSConfig) GetTwilioAccountSID() string {
+	return c.TwilioAccountSID
+}
+
+// GetTwilioAuthToken returns the Twilio Auth Token configuration.
+func (c *SMSConfig) GetTwilioAuthToken() string {
+	return c.TwilioAuthToken
+}
+
+// GetTwilioPhoneNumber returns the Twilio Phone Number configuration.
+func (c *SMSConfig) GetTwilioPhoneNumber() string {
+	return c.TwilioPhoneNumber
 }

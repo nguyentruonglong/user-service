@@ -3,49 +3,35 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strings"
-	"time"
 	"user-service/api/errors"
 	"user-service/api/models"
 	"user-service/config"
 
 	firebase "firebase.google.com/go"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // LogoutUser logs out a user, effectively invalidating their Bearer token.
-func LogoutUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	// Extract the token from the Authorization header
-	authorizationHeader := r.Header.Get("Authorization")
-	if authorizationHeader == "" {
-		errors.ErrorResponseJSON(w, errors.ErrUnauthorized, http.StatusUnauthorized)
+func LogoutUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
+	// Retrieve user ID from the context
+	userID, exists := c.Get("userID")
+	if !exists {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
-	// Extract the token from the "Bearer" prefix
-	var accessToken string
-	tokenParts := strings.Split(authorizationHeader, " ")
-	if len(tokenParts) == 2 && tokenParts[0] == "Bearer" {
-		accessToken = tokenParts[1]
-	} else {
-		// No "Bearer" prefix found, consider the whole value as the token
-		accessToken = authorizationHeader
-	}
-
-	// Check if the token exists and is not expired in the database
-	var storedToken models.Token
-	err := db.Where("access_token = ? AND expiration_time > ?", accessToken, time.Now()).First(&storedToken).Error
-	if err != nil {
-		// Token not found or expired
-		errors.ErrorResponseJSON(w, errors.ErrUnauthorized, http.StatusUnauthorized)
+	// Convert userID to uint
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	// Delete the token from the database
-	if err := db.Delete(&storedToken).Error; err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrDatabaseOperationFailed, http.StatusInternalServerError)
+	if err := db.Where("user_id = ?", userIDUint).Delete(&models.Token{}).Error; err != nil {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrDatabaseOperationFailed, http.StatusInternalServerError)
 		return
 	}
 
@@ -54,7 +40,5 @@ func LogoutUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseCli
 		Message: "User logged out successfully",
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(successResponse)
+	c.JSON(http.StatusOK, successResponse)
 }
