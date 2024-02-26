@@ -69,19 +69,17 @@ type UserResetPasswordInput struct {
 	Email string `json:"email"`
 }
 
-// UserResponse represents the response for user-related operations.
-type UserResponse struct {
-	// Customize the response fields as needed
+// UserRegisterResponse represents the response structure for a successful user register.
+type UserRegisterResponse struct {
 	Message string `json:"message"`
 }
 
-// TokenResponse represents the response containing a token.
-type TokenResponse struct {
-	Token string `json:"token"`
+// UserLogoutInput represents the input for user logout.
+type UserLogoutInput struct {
 }
 
-// LogoutResponse represents the response for a successful logout.
-type LogoutResponse struct {
+// UserLogoutResponse represents the response for a successful logout.
+type UserLogoutResponse struct {
 	Message string `json:"message"`
 }
 

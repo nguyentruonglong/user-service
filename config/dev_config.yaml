@@ -9,6 +9,8 @@ host: localhost
 
 # JWT Secret Key
 jwt_secret_key: "mVMjmyFIFrtbqTC41X5pYpnSE7AKyMC3dmUt"
+# JWT Expiration
+jwt_expiration: 24h
 
 # Multiple Databases Configuration
 multiple_databases:

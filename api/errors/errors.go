@@ -57,4 +57,10 @@ var (
 
 	// ErrTokenGenerationFailed is an error when token generation fails.
 	ErrTokenGenerationFailed = errors.New("token generation failed")
+
+	// ErrUnauthorized occurs when a request is unauthorized.
+	ErrUnauthorized = errors.New("unauthorized")
+
+	// ErrDatabaseOperationFailed occurs when a database operation fails.
+	ErrDatabaseOperationFailed = errors.New("database operation failed")
 )

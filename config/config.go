@@ -4,6 +4,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -14,6 +15,7 @@ type AppConfig struct {
 	HTTPSPort               int                     `mapstructure:"https_port"`
 	Host                    string                  `mapstructure:"host"`
 	JWTSecretKey            string                  `mapstructure:"jwt_secret_key"`
+	JWTExpiration           time.Duration           `mapstructure:"jwt_expiration"`
 	MultipleDatabasesConfig MultipleDatabasesConfig `mapstructure:"multiple_databases"`
 	SQLiteConfig            SQLiteConfig            `mapstructure:"sqlite"`
 	PostgreSQLConfig        PostgreSQLConfig        `mapstructure:"postgresql"`
@@ -128,6 +130,10 @@ func (c *AppConfig) GetHost() string {
 
 func (c *AppConfig) GetJWTSecretKey() string {
 	return c.JWTSecretKey
+}
+
+func (c *AppConfig) GetJWTExpiration() time.Duration {
+	return c.JWTExpiration
 }
 
 func (c *AppConfig) PostgreSQLConnectionString() string {

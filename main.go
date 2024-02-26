@@ -43,15 +43,15 @@ func main() {
 	log.Printf("Database URL: %s", cfg.GetDatabaseURL())
 
 	if cfg.MultipleDatabasesConfig.UseSQLite {
-		// Initialize the SQLite database
+		// Explicitly open and close the database to ensure it's created
 		db, err = database.InitDB(cfg.GetDatabaseURL())
 		if err != nil {
 			log.Fatalf("Failed to initialize the database: %v", err)
 		}
+		defer database.CloseDB(db)
 
+		// Perform any necessary migrations
 		database.AutoMigrateTables(db)
-
-		defer database.CloseDB(db) // Close the database connection when the server exits
 	} else if cfg.MultipleDatabasesConfig.UsePostgreSQL {
 	}
 

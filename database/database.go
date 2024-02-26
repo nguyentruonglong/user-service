@@ -26,8 +26,8 @@ func InitDB(databaseURL string) (*gorm.DB, error) {
 }
 
 func AutoMigrateTables(db *gorm.DB) {
-	// Migrate the User model
-	err := db.AutoMigrate(&models.User{})
+	// Migrate the User and Token models
+	err := db.AutoMigrate(&models.User{}, &models.Token{})
 	if err != nil {
 		log.Fatalf("Error auto-migrating tables: %v", err)
 	}

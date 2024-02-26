@@ -14,9 +14,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/db"
-	"github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
-
 	"gorm.io/gorm"
 )
 
@@ -179,7 +176,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	tx.Commit()
 
 	// Respond with success message or user data
-	successResponse := models.UserResponse{
+	successResponse := models.UserRegisterResponse{
 		Message: "User registered successfully",
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -219,87 +216,4 @@ func emailExistsInFirebase(client *db.Client, email string) (bool, error) {
 
 	// Check if there are any results
 	return len(results) > 0, nil
-}
-
-// LoginUser logs in a user and returns a Bearer token.
-func LoginUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	// Parse request body
-	var input models.UserLoginInput
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
-		return
-	}
-
-	// Validate input
-	err = validators.ValidateUserLoginInput(input.Email, input.Password)
-	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidInput, http.StatusBadRequest)
-		return
-	}
-
-	// Perform user authentication
-	user, err := authenticateUser(db, input.Email, input.Password)
-	if err != nil {
-		log.Printf("Authentication failed: %v", err)
-		errors.ErrorResponseJSON(w, errors.ErrAuthenticationFailed, http.StatusUnauthorized)
-		return
-	}
-
-	// Generate Bearer token with JWT secret key from the configuration
-	token, err := generateToken(user, cfg.GetJWTSecretKey())
-	if err != nil {
-		log.Printf("Token generation failed: %v", err)
-		errors.ErrorResponseJSON(w, errors.ErrTokenGenerationFailed, http.StatusInternalServerError)
-		return
-	}
-
-	// For simplicity, sending a success response with the generated token
-	successResponse := models.UserLoginResponse{
-		Message: "User logged in successfully",
-		Token:   token,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(successResponse)
-}
-
-// authenticateUser authenticates a user with the provided email and password.
-func authenticateUser(db *gorm.DB, email, password string) (*models.User, error) {
-	var user models.User
-
-	// Check if the user exists
-	err := db.Where("email = ? AND deleted_at IS NULL", email).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Compare the provided password with the hashed password in the database
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-// generateToken generates a Bearer token for the given user using JWT and the provided secret key.
-func generateToken(user *models.User, secretKey string) (string, error) {
-	// Create a new JWT token
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	// Set claims (payload) for the token
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = user.ID
-	claims["email"] = user.Email
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // Token expiration time (e.g., 24 hours)
-
-	// Sign the token with the provided secret key
-	tokenString, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
 }
