@@ -103,10 +103,11 @@ func generateToken(user *models.User, secretKey string, jwtExpiration time.Durat
 	}
 
 	// Save the token to the database
-	err = saveTokenToDatabase(tokenString, time.Now().Add(jwtExpiration), db)
+	err = saveTokenToDatabase(user.ID, tokenString, time.Now().Add(jwtExpiration), db)
 	if err != nil {
 		// Handle the error (e.g., log it)
 		log.Printf("Failed to save token to the database: %v", err)
+		return "", err
 	}
 
 	return tokenString, nil
@@ -132,8 +133,9 @@ func getValidToken(userID uint, db *gorm.DB) (string, error) {
 }
 
 // saveTokenToDatabase saves the token to the Token table in the database.
-func saveTokenToDatabase(tokenString string, expirationTime time.Time, db *gorm.DB) error {
+func saveTokenToDatabase(userID uint, tokenString string, expirationTime time.Time, db *gorm.DB) error {
 	token := models.Token{
+		UserID:         userID, // Set the UserID for the token
 		AccessToken:    tokenString,
 		ExpirationTime: expirationTime,
 	}

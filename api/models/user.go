@@ -83,10 +83,21 @@ type UserLogoutResponse struct {
 	Message string `json:"message"`
 }
 
-// BeforeCreate hook to set CreatedAt and UpdatedAt
+// BeforeCreate hook to set CreatedAt, UpdatedAt, and ID
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
+
+	// If ID is not set (which is the case for auto-incrementing primary keys),
+	// get the max ID from the database and increment it by 1
+	if user.ID == 0 {
+		var maxID int
+		if err := tx.Model(&User{}).Select("COALESCE(MAX(id), 0)").Scan(&maxID).Error; err != nil {
+			return err
+		}
+		user.ID = uint(maxID) + 1
+	}
+
 	return nil
 }
 
