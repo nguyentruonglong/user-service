@@ -66,4 +66,7 @@ var (
 
 	// ErrInvalidToken is returned when the provided token is invalid.
 	ErrInvalidToken = errors.New("invalid token")
+
+	// ErrInvalidRefreshToken is returned when the provided refresh token is invalid or missing.
+	ErrInvalidRefreshToken = errors.New("invalid or missing refresh token")
 )

@@ -27,7 +27,15 @@ func InitDB(databaseURL string) (*gorm.DB, error) {
 
 func AutoMigrateTables(db *gorm.DB) {
 	// Migrate the User and Token models
-	err := db.AutoMigrate(&models.User{}, &models.Token{})
+	err := db.AutoMigrate(
+		&models.User{},
+		&models.Group{},
+		&models.Permission{},
+		&models.Role{},
+		&models.AccessToken{},
+		&models.RefreshToken{},
+	)
+
 	if err != nil {
 		log.Fatalf("Error auto-migrating tables: %v", err)
 	}

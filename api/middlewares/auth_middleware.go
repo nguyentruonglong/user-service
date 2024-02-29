@@ -84,7 +84,7 @@ func validateToken(accessToken string, db *gorm.DB, cfg *config.AppConfig) (uint
 	userID := uint(userIDFloat)
 
 	// Check if the token exists in the database and is not expired
-	var storedToken models.Token
+	var storedToken models.AccessToken
 	err = db.Where("user_id = ? AND access_token = ? AND expiration_time > ?", userID, accessToken, time.Now()).First(&storedToken).Error
 	if err != nil {
 		return 0, errors.ErrInvalidToken

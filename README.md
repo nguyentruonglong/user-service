@@ -18,8 +18,6 @@ The User Service is a robust and versatile Golang-based application meticulously
 
 - Sending Notifications: Authenticated users can send notifications to others through multiple communication channels, such as email, SMS, and push notifications, making it easier to stay connected.
 
-- Bearer Token-based Authentication: The service utilizes Bearer tokens to authenticate users, ensuring secure and authorized access to protected resources. Users receive a Bearer token upon successful login, which they include in subsequent API requests for authorization.
-
 - Phone Number Validation (Firebase-based): Leveraging Firebase, the User Service offers phone number validation through SMS. Users can request and verify their phone numbers by entering received verification codes.
 
 This comprehensive suite of features caters to a wide range of user management and authentication needs, making the User Service a reliable and indispensable component for building secure and user-centric applications.
@@ -33,8 +31,10 @@ The User Service project is organized with a clear directory structure to promot
     |-- api/
     |   |-- v1/
     |   |   |-- controllers/
-    |   |   |   |-- user_controller.go                # User Controller
     |   |   |   |-- search_controller.go              # Search Controller
+    |   |   |   |-- user_login_controller.go          # User Login Controller
+    |   |   |   |-- user_logout_controller.go         # User Logout Controller
+    |   |   |   |-- user_register_controller.go       # User Register Controller
     |   |   |   |-- verification_controller.go        # Verification Controller
     |   |   |   |-- notification_controller.go        # Notification Controller
     |   |   |
@@ -51,65 +51,67 @@ The User Service project is organized with a clear directory structure to promot
     |   |   |   |-- notification_validator.go         # Notification Validator
     |   |
     |   |-- middlewares/
-    |   |   |-- auth_middleware.go                   # Authentication Middleware
+    |   |   |-- auth_middleware.go                    # Authentication Middleware
     |   |
     |   |-- models/
-    |   |   |-- user.go                              # User Model
+    |   |   |-- user.go                               # User Model
     |   |
     |   |-- services/
-    |   |   |-- user_service.go                      # User Service
-    |   |   |-- search_service.go                    # Search Service
-    |   |   |-- verification_service.go              # Verification Service
-    |   |   |-- notification_service.go              # Notification Service
+    |   |   |-- user_service.go                       # User Service
+    |   |   |-- search_service.go                     # Search Service
+    |   |   |-- verification_service.go               # Verification Service
+    |   |   |-- notification_service.go               # Notification Service
     |
     |-- config/
     |   |-- dev_config.yaml                           # Development Configuration
     |   |-- prod_config.yaml                          # Production Configuration
-    |   |-- config.go                                # Configuration Module
+    |   |-- config.go                                 # Configuration Module
     |
     |---database/
-    |   |-- database.go                              # Database Connection
+    |   |-- database.go                               # Database Connection
     |   |   
     |   \-- migrations/
     |
     |---docs
-    |   |-- docs.go                                  # Documentation Module
-    |   |-- swagger.json                             # Swagger JSON Configuration
-    |   |-- swagger.yaml                             # Swagger YAML Configuration
+    |   |-- docs.go                                   # Documentation Module
+    |   |-- swagger.json                              # Swagger JSON Configuration
+    |   |-- swagger.yaml                              # Swagger YAML Configuration
     |   |   
-    |   \-- images/                                  # Image Resources for Documentation
-    |   \-- swagger/                                 # Swagger UI Assets
+    |   \-- images/                                   # Image Resources for Documentation
+    |   \-- swagger/                                  # Swagger UI Assets
     |
     |-- firebase/
-    |   |-- firebase.go                              # Firebase Configuration
-    |   |-- auth_service.go                          # Firebase Authentication Service
-    |   |-- database_service.go                      # Firebase Realtime Database Service
+    |   |-- firebase.go                               # Firebase Configuration
+    |   |-- auth_service.go                           # Firebase Authentication Service
+    |   |-- database_service.go                       # Firebase Realtime Database Service
     |
     |-- email/
-    |   |-- email_service.go                         # Email Service
-    |   |-- verification_email.go                    # Email Verification Service
-    |   |-- password_reset_email.go                  # Password Reset Email Service
+    |   |-- email_service.go                          # Email Service
+    |   |-- verification_email.go                     # Email Verification Service
+    |   |-- password_reset_email.go                   # Password Reset Email Service
     |
     |-- sms/
-    |   |-- sms_service.go                           # SMS Service
-    |   |-- verification_sms.go                      # SMS Verification Service
+    |   |-- sms_service.go                            # SMS Service
+    |   |-- verification_sms.go                       # SMS Verification Service
     |
     |-- utils/
-    |   |-- helpers.go                               # Utility Functions
+    |   |-- helpers.go                                # Utility Functions
     |
     |-- tests/
-    |   |-- user_controller_test.go                  # Unit Tests for User Controller
-    |   |-- search_controller_test.go                # Unit Tests for Search Controller
-    |   |-- verification_controller_test.go          # Unit Tests for Verification Controller
-    |   |-- notification_controller_test.go          # Unit Tests for Notification Controller
-    |   |-- user_service_test.go                     # Unit Tests for User Service
-    |   |-- search_service_test.go                   # Unit Tests for Search Service
-    |   |-- verification_service_test.go             # Unit Tests for Verification Service
-    |   |-- notification_service_test.go             # Unit Tests for Notification Service
+    |   |-- user_login_controller_test.go             # Unit Tests for Login Controller
+    |   |-- user_logout_controller_test.go            # Unit Tests for Logout Controller
+    |   |-- user_register_controller_test.go          # Unit Tests for Register Controller  
+    |   |-- search_controller_test.go                 # Unit Tests for Search Controller
+    |   |-- verification_controller_test.go           # Unit Tests for Verification Controller
+    |   |-- notification_controller_test.go           # Unit Tests for Notification Controller
+    |   |-- user_service_test.go                      # Unit Tests for User Service
+    |   |-- search_service_test.go                    # Unit Tests for Search Service
+    |   |-- verification_service_test.go              # Unit Tests for Verification Service
+    |   |-- notification_service_test.go              # Unit Tests for Notification Service
     |
-    |-- main.go                                      # Main Application Entry Point
-    |-- go.mod                                      # Go Module File
-    |-- go.sum                                      # Go Module Dependencies Sum File
+    |-- main.go                                       # Main Application Entry Point
+    |-- go.mod                                        # Go Module File
+    |-- go.sum                                        # Go Module Dependencies Sum File
 ```
 
 - `api/`: Contains the API-related components.
@@ -370,7 +372,7 @@ curl -X POST http://localhost:8080/api/v1/login -d '{"email": "user@example.com"
 - Sample cURL Request:
 
 ```curl
-curl -X POST http://localhost:8080/api/v1/logout -H "Authorization: Bearer <your-access-token>"
+curl -X POST http://localhost:8080/api/v1/logout -H "Authorization: Bearer <your-access-token>" -d '{"refresh_token": "<your-refresh-token>"}'
 ```
 
 #### 5. Password Reset
@@ -459,59 +461,9 @@ curl -X POST http://localhost:8080/api/v1/verify-account/123456
 curl -X POST http://localhost:8080/api/v1/send-notification -d '{"recipient": "user@example.com", "message": "Hello, user!"}' -H "Authorization: Bearer <your-access-token>"
 ```
 
-### Bearer Authentication APIs
-
-#### 11. User Authentication
-
-- Endpoint: /api/v1/authenticate (POST)
-
-- Description: Allows users to authenticate by providing their credentials (email and password) and receive a Bearer token.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/authenticate -d '{"email": "user@example.com", "password": "secure_password"}'
-```
-
-#### 12. Access Token Validation
-
-- Endpoint: /api/v1/validate-token (GET)
-
-- Description: Allows other services to validate a Bearer token.
-
-- Sample cURL Request:
-
-```curl
-curl -X GET http://localhost:8080/api/v1/validate-token -H "Authorization: Bearer <your-access-token>"
-```
-
-#### 13. Token Refresh
-
-- Endpoint: /api/v1/refresh-token (POST)
-
-- Description: Allows users to refresh their Bearer token using a refresh token.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/refresh-token -d '{"refresh_token": "<your-refresh-token>"}'
-```
-
-#### 14. Token Revocation
-
-- Endpoint: /api/v1/revoke-token (POST)
-
-- Description: Allows users or services to revoke a Bearer token.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/revoke-token -d '{"token": "<token-to-revoke>"}' -H "Authorization: Bearer <your-access-token>"
-```
-
 ### Phone Number Validation APIs (Firebase-based)
 
-#### 15. Send Verification Code via SMS
+#### 11. Send Verification Code via SMS
 - Endpoint: /api/v1/send-verification-sms (POST)
 
 - Description: Allows users to request a verification code to be sent to their phone number via SMS.
@@ -522,7 +474,7 @@ curl -X POST http://localhost:8080/api/v1/revoke-token -d '{"token": "<token-to-
 curl -X POST http://localhost:8080/api/v1/send-verification-sms -d '{"phone_number": "+1234567890"}' -H "Authorization: Bearer <your-access-token>"
 ```
 
-#### 16. Verify Phone Number with Code
+#### 12. Verify Phone Number with Code
 
 - Endpoint: /api/v1/verify-phone (POST)
 

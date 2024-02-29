@@ -17,12 +17,12 @@ import (
 func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
 	// Example route: Register a user
 	router.POST("/api/v1/register", func(c *gin.Context) {
-		controllers.RegisterUser(c.Writer, c.Request, db, firebaseClient, cfg)
+		controllers.RegisterUser(c, db, firebaseClient, cfg)
 	})
 
 	// Login route: Log in and obtain a Bearer token
 	router.POST("/api/v1/login", func(c *gin.Context) {
-		controllers.LoginUser(c.Writer, c.Request, db, firebaseClient, cfg)
+		controllers.LoginUser(c, db, firebaseClient, cfg)
 	})
 
 	// Logout route: Log out and invalidate Bearer token
@@ -30,5 +30,4 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.Ap
 		controllers.LogoutUser(c, db, firebaseClient, cfg)
 	})
 
-	// Add more routes for other user-related actions as needed
 }

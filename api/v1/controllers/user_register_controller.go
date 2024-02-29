@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -14,11 +13,12 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/db"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // RegisterUser registers a new user and creates an object in the specified database
-func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
+func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
 	// Start a transaction
 	tx := db.Begin()
 
@@ -26,34 +26,34 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			errors.ErrorResponseJSON(w, errors.ErrTransactionFailed, http.StatusInternalServerError)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrTransactionFailed, http.StatusInternalServerError)
 		}
 	}()
 
 	// Parse request body
 	var input models.UserRegisterInput
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
 	err = validators.ValidateUserRegisterInput(input.Email, input.Password)
 	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidInput, http.StatusBadRequest)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrInvalidInput, http.StatusBadRequest)
 		return
 	}
 
 	// Check if the email already exists
 	if emailExists(tx, input.Email) {
-		errors.ErrorResponseJSON(w, errors.ErrEmailExists, http.StatusConflict)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrEmailExists, http.StatusConflict)
 		return
 	}
 
 	// Check if the phone number already exists
 	if phoneNumberExists(tx, input.PhoneNumber) {
-		errors.ErrorResponseJSON(w, errors.ErrPhoneNumberExists, http.StatusConflict)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberExists, http.StatusConflict)
 		return
 	}
 
@@ -75,7 +75,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	err = user.SetPassword(input.Password)
 	if err != nil {
 		tx.Rollback()
-		errors.ErrorResponseJSON(w, errors.ErrFailedToSetPassword, http.StatusInternalServerError)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSetPassword, http.StatusInternalServerError)
 		return
 	}
 
@@ -84,19 +84,19 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
-			errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserSQLite, http.StatusInternalServerError)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserSQLite, http.StatusInternalServerError)
 			return
 		}
 	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
 		err = tx.Create(user).Error
 		if err != nil {
 			tx.Rollback()
-			errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserPostgreSQL, http.StatusInternalServerError)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserPostgreSQL, http.StatusInternalServerError)
 			return
 		}
 		// TODO: Insert into PostgreSQL database
 	} else {
-		errors.ErrorResponseJSON(w, errors.ErrNoValidDatabaseSelected, http.StatusBadRequest)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrNoValidDatabaseSelected, http.StatusBadRequest)
 		return
 	}
 
@@ -107,7 +107,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 		client, err := firebaseClient.Database(ctx)
 		if err != nil {
 			tx.Rollback()
-			errors.ErrorResponseJSON(w, errors.ErrFailedToGetFirebaseClient, http.StatusInternalServerError)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToGetFirebaseClient, http.StatusInternalServerError)
 			return
 		}
 
@@ -115,14 +115,14 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 		if err != nil {
 			tx.Rollback()
 			// Handle case where there was an error checking email existence in Firebase
-			errors.ErrorResponseJSON(w, errors.ErrFailedToCheckEmailExistence, http.StatusInternalServerError)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToCheckEmailExistence, http.StatusInternalServerError)
 			return
 		}
 
 		if exists {
 			tx.Rollback()
 			// Handle case where email already exists in Firebase
-			errors.ErrorResponseJSON(w, errors.ErrEmailAlreadyExistsOnFirebase, http.StatusConflict)
+			errors.ErrorResponseJSON(c.Writer, errors.ErrEmailAlreadyExistsOnFirebase, http.StatusConflict)
 			return
 		}
 
@@ -158,7 +158,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 			newUserRef, err := ref.Push(context.Background(), userMap)
 			if err != nil {
 				tx.Rollback()
-				errors.ErrorResponseJSON(w, errors.ErrFailedToSaveUserFirebaseRTDB, http.StatusInternalServerError)
+				errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserFirebaseRTDB, http.StatusInternalServerError)
 				return
 			}
 
@@ -179,9 +179,9 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseC
 	successResponse := models.UserRegisterResponse{
 		Message: "User registered successfully",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(successResponse)
+	c.Header("Content-Type", "application/json")
+	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, successResponse)
 }
 
 // Function to check if email already exists in the database

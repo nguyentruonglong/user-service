@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -12,24 +11,24 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 // LoginUser logs in a user and returns a Bearer token.
-func LoginUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
+func LoginUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
 	// Parse request body
 	var input models.UserLoginInput
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrInvalidRequestPayload, http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
-	err = validators.ValidateUserLoginInput(input.Email, input.Password)
-	if err != nil {
-		errors.ErrorResponseJSON(w, errors.ErrInvalidInput, http.StatusBadRequest)
+	if err := validators.ValidateUserLoginInput(input.Email, input.Password); err != nil {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrInvalidInput, http.StatusBadRequest)
 		return
 	}
 
@@ -37,27 +36,28 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *gorm.DB, firebaseClie
 	user, err := authenticateUser(db, input.Email, input.Password)
 	if err != nil {
 		log.Printf("Authentication failed: %v", err)
-		errors.ErrorResponseJSON(w, errors.ErrAuthenticationFailed, http.StatusUnauthorized)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrAuthenticationFailed, http.StatusUnauthorized)
 		return
 	}
 
 	// Generate Bearer token with JWT secret key from the configuration
-	token, err := generateToken(user, cfg.GetJWTSecretKey(), cfg.GetJWTExpiration(), db)
+	accessToken, refreshToken, err := generateTokens(user, cfg.GetJWTSecretKey(), cfg.GetJWTExpiration(), cfg.GetRefreshTokenExpiration(), db)
 	if err != nil {
 		log.Printf("Token generation failed: %v", err)
-		errors.ErrorResponseJSON(w, errors.ErrTokenGenerationFailed, http.StatusInternalServerError)
+		errors.ErrorResponseJSON(c.Writer, errors.ErrTokenGenerationFailed, http.StatusInternalServerError)
 		return
 	}
 
-	// For simplicity, sending a success response with the generated token
+	// For simplicity, sending a success response with the generated tokens
 	successResponse := models.UserLoginResponse{
-		Message: "User logged in successfully",
-		Token:   token,
+		Message:      "User logged in successfully",
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    int(cfg.GetJWTExpiration().Seconds()), // Convert duration to seconds
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(successResponse)
+	c.JSON(http.StatusOK, successResponse)
 }
 
 // authenticateUser authenticates a user with the provided email and password.
@@ -79,46 +79,66 @@ func authenticateUser(db *gorm.DB, email, password string) (*models.User, error)
 	return &user, nil
 }
 
-// generateToken generates a Bearer token for the given user using JWT and the provided secret key.
-func generateToken(user *models.User, secretKey string, jwtExpiration time.Duration, db *gorm.DB) (string, error) {
-	// Check if a valid token already exists
-	existingToken, err := getValidToken(user.ID, db)
-	if err == nil && existingToken != "" {
-		return existingToken, nil
+// generateTokens generates both access and refresh tokens for the given user using JWT and the provided secret key.
+func generateTokens(user *models.User, secretKey string, jwtExpiration, refreshTokenExpiration time.Duration, db *gorm.DB) (string, string, error) {
+	// Check if a valid refresh token already exists
+	existingRefreshToken, err := getValidRefreshToken(user.ID, db)
+	if err == nil && existingRefreshToken != "" {
+		// If a valid refresh token exists, check if a valid access token exists
+		existingAccessToken, err := getValidAccessToken(user.ID, db)
+		if err == nil && existingAccessToken != "" {
+			// If a valid access token exists, return both tokens
+			return existingAccessToken, existingRefreshToken, nil
+		}
+
+		// If the access token is not valid, generate a new access token
+		return generateAndSaveTokens(user, secretKey, jwtExpiration, refreshTokenExpiration, db)
 	}
 
-	// Create a new JWT token
-	token := jwt.New(jwt.SigningMethodHS256)
+	// If a valid refresh token does not exist, generate a new refresh token
+	refreshToken := generateRefreshToken()
 
-	// Set claims (payload) for the token
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = user.ID
-	claims["email"] = user.Email
-	claims["exp"] = time.Now().Add(jwtExpiration).Unix() // Use JWT expiration from the configuration
-
-	// Sign the token with the provided secret key
-	tokenString, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		return "", err
+	// Check if a valid access token already exists
+	existingAccessToken, err := getValidAccessToken(user.ID, db)
+	if err == nil && existingAccessToken != "" {
+		// Save the refresh token to the database
+		saveRefreshTokenToDatabase(user.ID, refreshToken, time.Now().Add(refreshTokenExpiration), db)
+		// If a valid access token exists, return it along with the new refresh token
+		return existingAccessToken, refreshToken, nil
 	}
 
-	// Save the token to the database
-	err = saveTokenToDatabase(user.ID, tokenString, time.Now().Add(jwtExpiration), db)
-	if err != nil {
-		// Handle the error (e.g., log it)
-		log.Printf("Failed to save token to the database: %v", err)
-		return "", err
-	}
-
-	return tokenString, nil
+	// Save both tokens to the database
+	return generateAndSaveTokens(user, secretKey, jwtExpiration, refreshTokenExpiration, db)
 }
 
-// getValidToken retrieves a valid token for the given user ID from the database.
-func getValidToken(userID uint, db *gorm.DB) (string, error) {
-	var token models.Token
+// generateAndSaveTokens generates new access and refresh tokens and saves them to the database.
+func generateAndSaveTokens(user *models.User, secretKey string, jwtExpiration, refreshTokenExpiration time.Duration, db *gorm.DB) (string, string, error) {
+	accessToken := generateAccessToken(user, secretKey, jwtExpiration)
+	refreshToken := generateRefreshToken()
 
-	// Query for a valid token for the user
-	err := db.Model(&models.Token{}).
+	// Save the access token to the database
+	err := saveAccessTokenToDatabase(user.ID, accessToken, time.Now().Add(jwtExpiration), db)
+	if err != nil {
+		log.Printf("Failed to save access token to the database: %v", err)
+		return "", "", err
+	}
+
+	// Save the refresh token to the database
+	err = saveRefreshTokenToDatabase(user.ID, refreshToken, time.Now().Add(refreshTokenExpiration), db)
+	if err != nil {
+		log.Printf("Failed to save refresh token to the database: %v", err)
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+// getValidAccessToken retrieves a valid access token for the given user ID from the database.
+func getValidAccessToken(userID uint, db *gorm.DB) (string, error) {
+	var token models.AccessToken
+
+	// Query for a valid access token for the user
+	err := db.Model(&models.AccessToken{}).
 		Select("access_token").
 		Where("user_id = ? AND expiration_time > ?", userID, time.Now()).
 		Order("expiration_time DESC").
@@ -132,15 +152,80 @@ func getValidToken(userID uint, db *gorm.DB) (string, error) {
 	return token.AccessToken, nil
 }
 
-// saveTokenToDatabase saves the token to the Token table in the database.
-func saveTokenToDatabase(userID uint, tokenString string, expirationTime time.Time, db *gorm.DB) error {
-	token := models.Token{
+// generateAccessToken generates a new JWT access token for the given user using JWT and the provided secret key.
+func generateAccessToken(user *models.User, secretKey string, jwtExpiration time.Duration) string {
+	// Create a new JWT access token
+	jwtToken := jwt.New(jwt.SigningMethodHS256)
+	// Set claims (payload) for the access token
+	claims := jwtToken.Claims.(jwt.MapClaims)
+	claims["user_id"] = user.ID
+	claims["email"] = user.Email
+	claims["exp"] = time.Now().Add(jwtExpiration).Unix() // Use JWT expiration from the configuration
+
+	// Sign the access token with the provided secret key
+	accessToken, err := jwtToken.SignedString([]byte(secretKey))
+	if err != nil {
+		// Handle the error (e.g., log it)
+		log.Printf("Failed to sign access token: %v", err)
+		return ""
+	}
+
+	return accessToken
+}
+
+// saveAccessTokenToDatabase saves the access token to the AccessToken table in the database.
+func saveAccessTokenToDatabase(userID uint, tokenString string, expirationTime time.Time, db *gorm.DB) error {
+	token := models.AccessToken{
 		UserID:         userID, // Set the UserID for the token
 		AccessToken:    tokenString,
 		ExpirationTime: expirationTime,
 	}
 
-	// Save the token to the Token table
+	// Save the token to the AccessToken table
+	err := db.Create(&token).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getValidRefreshToken retrieves a valid refresh token for the given user ID from the database.
+func getValidRefreshToken(userID uint, db *gorm.DB) (string, error) {
+	var token models.RefreshToken
+
+	// Query for a valid refresh token for the user
+	err := db.Model(&models.RefreshToken{}).
+		Select("refresh_token").
+		Where("user_id = ? AND expiration_time > ?", userID, time.Now()).
+		Order("expiration_time DESC").
+		Limit(1).
+		Scan(&token).
+		Error
+	if err != nil {
+		return "", err
+	}
+
+	return token.RefreshToken, nil
+}
+
+// generateRefreshToken generates a new refresh token for the given user.
+func generateRefreshToken() string {
+	// Create a new refresh token
+	refreshToken := uuid.New().String()
+
+	return refreshToken
+}
+
+// saveRefreshTokenToDatabase saves the refresh token to the RefreshToken table in the database.
+func saveRefreshTokenToDatabase(userID uint, refreshToken string, expirationTime time.Time, db *gorm.DB) error {
+	token := models.RefreshToken{
+		UserID:         userID,
+		RefreshToken:   refreshToken,
+		ExpirationTime: expirationTime,
+	}
+
+	// Save the refresh token to the RefreshToken table
 	err := db.Create(&token).Error
 	if err != nil {
 		return err

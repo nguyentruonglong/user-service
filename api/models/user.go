@@ -60,8 +60,11 @@ type UserLoginInput struct {
 
 // UserLoginResponse represents the response structure for a successful user login.
 type UserLoginResponse struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
+	Message      string `json:"message"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"` // in seconds
 }
 
 // UserResetPasswordInput represents the input for resetting the user's password.
@@ -76,6 +79,7 @@ type UserRegisterResponse struct {
 
 // UserLogoutInput represents the input for user logout.
 type UserLogoutInput struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
 // UserLogoutResponse represents the response for a successful logout.
