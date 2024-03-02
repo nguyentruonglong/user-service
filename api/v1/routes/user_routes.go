@@ -15,19 +15,30 @@ import (
 
 // RegisterRoutes sets up API routes for the user-related endpoints.
 func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	// Example route: Register a user
+	// Register a new user.
 	router.POST("/api/v1/register", func(c *gin.Context) {
 		controllers.RegisterUser(c, db, firebaseClient, cfg)
 	})
 
-	// Login route: Log in and obtain a Bearer token
+	// Log in and obtain a Bearer token.
 	router.POST("/api/v1/login", func(c *gin.Context) {
 		controllers.LoginUser(c, db, firebaseClient, cfg)
 	})
 
-	// Logout route: Log out and invalidate Bearer token
+	// Log out and invalidate Bearer token.
 	router.POST("/api/v1/logout", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
 		controllers.LogoutUser(c, db, firebaseClient, cfg)
 	})
 
+	// Send verification SMS.
+	router.POST("/api/v1/send-verification-sms", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
+		// Ensure the user is authenticated before sending the verification SMS.
+		controllers.SendPhoneNumberVerificationCode(c, db, firebaseClient, cfg)
+	})
+
+	// Send verification email.
+	// router.POST("/api/v1/send-verification-email", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
+	// 	// Ensure the user is authenticated before sending the verification email.
+	// 	controllers.SendEmailVerificationCode(c, db, firebaseClient, cfg)
+	// })
 }

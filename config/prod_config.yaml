@@ -46,17 +46,20 @@ firebase:
   auth_domain: "production_firebase_auth_domain"
   database_url: "https://production-firebase-database-url.firebaseio.com"
   service_account_key: '{
-      "type": "service_account",
-      "project_id": "project_id",
-      "private_key_id": "private_key_id",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nPrivate_Key\n-----END PRIVATE KEY-----\n",
-      "client_email": "client_email",
-      "client_id": "client_id",
-      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-      "token_uri": "https://oauth2.googleapis.com/token",
-      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "client_x509_cert_url"
-    }'
+    "type": "service_account",
+    "project_id": "project_id",
+    "private_key_id": "private_key_id",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nPrivate_Key\n-----END PRIVATE KEY-----\n",
+    "client_email": "client_email",
+    "client_id": "client_id",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "client_x509_cert_url"
+  }'
+
+# FCM Device Token
+fcm_device_token: "<fcm-device-token>"
 
 # Email Configuration
 email:

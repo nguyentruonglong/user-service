@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -46,14 +47,14 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 	}
 
 	// Check if the email already exists
-	if emailExists(tx, input.Email) {
-		errors.ErrorResponseJSON(c.Writer, errors.ErrEmailExists, http.StatusConflict)
+	if emailExistsInDatabase(tx, input.Email) {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrEmailExistsInDatabase, http.StatusConflict)
 		return
 	}
 
 	// Check if the phone number already exists
-	if phoneNumberExists(tx, input.PhoneNumber) {
-		errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberExists, http.StatusConflict)
+	if phoneNumberExistsInDatabase(tx, input.PhoneNumber) {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberExistsInDatabase, http.StatusConflict)
 		return
 	}
 
@@ -126,10 +127,27 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 			return
 		}
 
+		// Check if the phone number already exists in Firebase
+		exists, err = phoneNumberExistsInFirebase(client, input.PhoneNumber)
+		if err != nil {
+			tx.Rollback()
+			// Handle case where there was an error checking phone number existence in Firebase
+			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToCheckPhoneNumberExistence, http.StatusInternalServerError)
+			return
+		}
+
+		if exists {
+			tx.Rollback()
+			// Handle case where phone number already exists in Firebase
+			errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberAlreadyExistsOnFirebase, http.StatusConflict)
+			return
+		}
+
 		hashedPassword, _ := models.HashPassword(input.Password) // Hash the input password
 
 		// Convert the user struct to a map
 		userMap := map[string]interface{}{
+			"id":                             user.ID,
 			"email":                          input.Email,
 			"first_name":                     input.FirstName,
 			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""), // Add default middle_name value
@@ -185,20 +203,20 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 }
 
 // Function to check if email already exists in the database
-func emailExists(db *gorm.DB, email string) bool {
+func emailExistsInDatabase(db *gorm.DB, email string) bool {
 	var count int64
 	db.Model(&models.User{}).Where("email = ? AND deleted_at IS NULL", email).Count(&count)
 	return count > 0
 }
 
 // Function to check if phone number already exists in the database
-func phoneNumberExists(db *gorm.DB, phoneNumber string) bool {
+func phoneNumberExistsInDatabase(db *gorm.DB, phoneNumber string) bool {
 	var count int64
 	db.Model(&models.User{}).Where("phone_number = ? AND deleted_at IS NULL", phoneNumber).Count(&count)
 	return count > 0
 }
 
-// Function to checks if an email already exists in the Firebase Realtime Database
+// Function to check if email already exists in the Firebase Realtime Database
 func emailExistsInFirebase(client *db.Client, email string) (bool, error) {
 	ctx := context.Background()
 
@@ -211,9 +229,51 @@ func emailExistsInFirebase(client *db.Client, email string) (bool, error) {
 	// Get the result of the query
 	results, err := query.GetOrdered(ctx)
 	if err != nil {
+		// Print or log the error
+		fmt.Println("Error querying Firebase:", err)
 		return false, err
 	}
 
 	// Check if there are any results
+	if results == nil {
+		// Handle the case of nil results
+		fmt.Println("Results are nil.")
+		return false, nil
+	}
+
+	// Log the results for debugging
+	fmt.Println("Query Results:", results)
+
+	return len(results) > 0, nil
+}
+
+// Function to check if phone number already exists in the Firebase Realtime Database
+func phoneNumberExistsInFirebase(client *db.Client, phoneNumber string) (bool, error) {
+	ctx := context.Background()
+
+	// Get a reference to the users node in the Firebase Realtime Database
+	ref := client.NewRef("users")
+
+	// Query to check if the phone number exists
+	query := ref.OrderByChild("phone_number").EqualTo(phoneNumber)
+
+	// Get the result of the query
+	results, err := query.GetOrdered(ctx)
+	if err != nil {
+		// Print or log the error
+		fmt.Println("Error querying Firebase:", err)
+		return false, err
+	}
+
+	// Check if there are any results
+	if results == nil {
+		// Handle the case of nil results
+		fmt.Println("Results are nil.")
+		return false, nil
+	}
+
+	// Log the results for debugging
+	fmt.Println("Query Results:", results)
+
 	return len(results) > 0, nil
 }

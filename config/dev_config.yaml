@@ -57,6 +57,9 @@ firebase:
   "universe_domain": "googleapis.com"
 }'
 
+# FCM Device Token
+fcm_device_token: "<fcm-device-token>"
+
 # Email Configuration
 email:
   smtp_server: "smtp.example.com"

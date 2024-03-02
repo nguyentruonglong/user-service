@@ -8,6 +8,8 @@ The User Service is a robust and versatile Golang-based application meticulously
 
 - Email and Phone Number Verification: To ensure security and trust, the User Service offers both email and phone number verification mechanisms. Users receive verification codes via email and SMS, respectively, to confirm their identity.
 
+- Phone Number Validation (Twilio-based): Leveraging Twilio, the User Service now offers phone number validation through SMS. Users can request and verify their phone numbers by entering received verification codes.
+
 - User Login and Logout: With a user-friendly login process, users can access their accounts securely using their registered email and password. Additionally, the service facilitates convenient logout to ensure data privacy.
 
 - Password Reset: Users can regain access to their accounts if they forget their passwords by initiating a password reset process. A password reset email is sent to the user's registered email address.
@@ -17,8 +19,6 @@ The User Service is a robust and versatile Golang-based application meticulously
 - User Search and Listing: Users can search for other users based on various criteria and view user listings with optional pagination and filtering options.
 
 - Sending Notifications: Authenticated users can send notifications to others through multiple communication channels, such as email, SMS, and push notifications, making it easier to stay connected.
-
-- Phone Number Validation (Firebase-based): Leveraging Firebase, the User Service offers phone number validation through SMS. Users can request and verify their phone numbers by entering received verification codes.
 
 This comprehensive suite of features caters to a wide range of user management and authentication needs, making the User Service a reliable and indispensable component for building secure and user-centric applications.
 
@@ -35,7 +35,7 @@ The User Service project is organized with a clear directory structure to promot
     |   |   |   |-- user_login_controller.go          # User Login Controller
     |   |   |   |-- user_logout_controller.go         # User Logout Controller
     |   |   |   |-- user_register_controller.go       # User Register Controller
-    |   |   |   |-- verification_controller.go        # Verification Controller
+    |   |   |   |-- user_verification_controller.go   # User Verification Controller
     |   |   |   |-- notification_controller.go        # Notification Controller
     |   |   |
     |   |   |-- routes/
@@ -303,13 +303,13 @@ The User Service provides the following functions:
 
 - User registration and management.
 - Email and phone number verification.
+- Phone number validation using Twilio.
 - User login and logout.
 - Password reset.
 - User profile management.
 - User search and listing.
 - Sending notifications to users.
 - Bearer token-based authentication.
-- Phone number validation using Firebase.
 
 ### APIs
 
@@ -461,7 +461,7 @@ curl -X POST http://localhost:8080/api/v1/verify-account/123456
 curl -X POST http://localhost:8080/api/v1/send-notification -d '{"recipient": "user@example.com", "message": "Hello, user!"}' -H "Authorization: Bearer <your-access-token>"
 ```
 
-### Phone Number Validation APIs (Firebase-based)
+### Phone Number Validation APIs (Twilio-based)
 
 #### 11. Send Verification Code via SMS
 - Endpoint: /api/v1/send-verification-sms (POST)
@@ -471,7 +471,7 @@ curl -X POST http://localhost:8080/api/v1/send-notification -d '{"recipient": "u
 - Sample cURL Request:
 
 ```curl
-curl -X POST http://localhost:8080/api/v1/send-verification-sms -d '{"phone_number": "+1234567890"}' -H "Authorization: Bearer <your-access-token>"
+curl -X POST http://localhost:8080/api/v1/send-verification-sms -H "Authorization: Bearer <your-access-token>"
 ```
 
 #### 12. Verify Phone Number with Code

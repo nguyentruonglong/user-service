@@ -17,6 +17,7 @@ type AppConfig struct {
 	JWTSecretKey            string                  `mapstructure:"jwt_secret_key"`
 	JWTExpiration           time.Duration           `mapstructure:"jwt_expiration"`
 	RefreshTokenExpiration  time.Duration           `mapstructure:"refresh_token_expiration"`
+	FCMDeviceToken          string                  `mapstructure:"fcm_device_token"`
 	MultipleDatabasesConfig MultipleDatabasesConfig `mapstructure:"multiple_databases"`
 	SQLiteConfig            SQLiteConfig            `mapstructure:"sqlite"`
 	PostgreSQLConfig        PostgreSQLConfig        `mapstructure:"postgresql"`
@@ -121,9 +122,9 @@ func (c *AppConfig) GetJWTExpiration() time.Duration {
 	return c.JWTExpiration
 }
 
-// GetRefreshTokenExpiration returns the configured Refresh Token expiration duration.
-func (c *AppConfig) GetRefreshTokenExpiration() time.Duration {
-	return c.RefreshTokenExpiration
+// GetFCMDeviceToken returns the configured FCM Device Token.
+func (c *AppConfig) GetFCMDeviceToken() string {
+	return c.FCMDeviceToken
 }
 
 // Database Configuration Functions
@@ -138,6 +139,11 @@ func (c *AppConfig) GetDatabaseURL() string {
 
 	// Default to SQLite if neither is specified
 	return c.SQLiteConfig.ConnectionString
+}
+
+// GetRefreshTokenExpiration returns the configured Refresh Token expiration duration.
+func (c *AppConfig) GetRefreshTokenExpiration() time.Duration {
+	return c.RefreshTokenExpiration
 }
 
 // GetMultipleDatabasesConfig returns a pointer to the configuration for multiple databases.

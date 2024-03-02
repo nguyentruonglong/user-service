@@ -87,6 +87,11 @@ type UserLogoutResponse struct {
 	Message string `json:"message"`
 }
 
+// PhoneNumberVerificationResponse represents the response format for the send phone number verification code API.
+type PhoneNumberVerificationResponse struct {
+	Message string `json:"message"`
+}
+
 // BeforeCreate hook to set CreatedAt, UpdatedAt, and ID
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.CreatedAt = time.Now()

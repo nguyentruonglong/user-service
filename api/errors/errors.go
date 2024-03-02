@@ -22,11 +22,20 @@ var (
 	// ErrInvalidPhoneNumber is returned for invalid phone number format provided
 	ErrInvalidPhoneNumber = errors.New("invalid phone number format provided")
 
-	// ErrEmailExists occurs when the email already exists.
-	ErrEmailExists = errors.New("email already exists")
+	// ErrEmailExistsInDatabase indicates that the email already exists in the database.
+	ErrEmailExistsInDatabase = errors.New("email already exists in the database")
 
-	// ErrPhoneNumberExists occurs when the phone number already exists.
-	ErrPhoneNumberExists = errors.New("phone number already exists")
+	// ErrPhoneNumberExistsInDatabase indicates that the phone number already exists in the database.
+	ErrPhoneNumberExistsInDatabase = errors.New("phone number already exists in the database")
+
+	// ErrPhoneNumberNotFoundInDatabase indicates that the phone number does not exist in the database.
+	ErrPhoneNumberNotFoundInDatabase = errors.New("phone number not found in the database")
+
+	// ErrFailedToCheckPhoneNumberExistence indicates failure to check if a phone number exists.
+	ErrFailedToCheckPhoneNumberExistence = errors.New("failed to check phone number existence")
+
+	// ErrPhoneNumberAlreadyExistsOnFirebase indicates that the phone number already exists in Firebase.
+	ErrPhoneNumberAlreadyExistsOnFirebase = errors.New("phone number already exists in Firebase")
 
 	// ErrFailedToSetPassword occurs when setting the password fails.
 	ErrFailedToSetPassword = errors.New("failed to set the password")
@@ -69,4 +78,10 @@ var (
 
 	// ErrInvalidRefreshToken is returned when the provided refresh token is invalid or missing.
 	ErrInvalidRefreshToken = errors.New("invalid or missing refresh token")
+
+	// ErrUserNotFound occurs when a user is not found in the database.
+	ErrUserNotFound = errors.New("user not found")
+
+	// ErrSMSFailure occurs when sending an SMS fails.
+	ErrSMSFailure = errors.New("SMS sending failure")
 )
