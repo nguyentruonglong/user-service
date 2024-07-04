@@ -1,22 +1,16 @@
 # Production Configuration
 
-# HTTP Port
+# HTTP and HTTPS Ports
 http_port: 80
+https_port: 443
 
-# Host
+# Host Configuration
 host: <production-host>
 
-# JWT Secret Key
+# JWT Configuration
 jwt_secret_key: <jwt-secret-key>
-
-# JWT Expiration
 jwt_expiration: <jwt-expiration>
-
-# Refresh Token Expiration
 refresh_token_expiration: <refresh-token-expiration>
-
-# HTTPS Port (you can specify an additional HTTPS port if needed)
-https_port: 443
 
 # Multiple Databases Configuration
 multiple_databases:
@@ -25,7 +19,7 @@ multiple_databases:
   use_sqlite: false  # Disable SQLite for production
   use_postgresql: true  # Enable PostgreSQL for production
 
-# SQLite Configuration (disable for production)
+# SQLite Configuration (disabled for production)
 sqlite:
   driver: sqlite3
   connection_string: "production.sqlite3"

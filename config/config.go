@@ -83,15 +83,13 @@ func LoadConfig(configFilePath string) (*AppConfig, error) {
 	viper.SetConfigFile(configFilePath)
 
 	// Read the config file
-	err := viper.ReadInConfig()
-	if err != nil {
-		return nil, err
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
 	// Unmarshal the configuration into the AppConfig struct
-	err = viper.Unmarshal(&cfg)
-	if err != nil {
-		return nil, err
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("error unmarshalling config: %w", err)
 	}
 
 	return cfg, nil
@@ -122,6 +120,11 @@ func (c *AppConfig) GetJWTExpiration() time.Duration {
 	return c.JWTExpiration
 }
 
+// GetRefreshTokenExpiration returns the configured Refresh Token expiration duration.
+func (c *AppConfig) GetRefreshTokenExpiration() time.Duration {
+	return c.RefreshTokenExpiration
+}
+
 // GetFCMDeviceToken returns the configured FCM Device Token.
 func (c *AppConfig) GetFCMDeviceToken() string {
 	return c.FCMDeviceToken
@@ -134,19 +137,14 @@ func (c *AppConfig) GetDatabaseURL() string {
 	if c.GetMultipleDatabasesConfig().GetUseSQLite() {
 		return c.GetSQLiteConfig().GetConnectionString()
 	} else if c.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
-		return c.GetPostgreSQLConfig().GetPostgreSQLConnectionString()
+		return c.GetPostgreSQLConfig().GetConnectionString()
 	}
 
 	// Default to SQLite if neither is specified
 	return c.SQLiteConfig.ConnectionString
 }
 
-// GetRefreshTokenExpiration returns the configured Refresh Token expiration duration.
-func (c *AppConfig) GetRefreshTokenExpiration() time.Duration {
-	return c.RefreshTokenExpiration
-}
-
-// GetMultipleDatabasesConfig returns a pointer to the configuration for multiple databases.
+// GetMultipleDatabasesConfig returns the configuration for multiple databases.
 func (c *AppConfig) GetMultipleDatabasesConfig() *MultipleDatabasesConfig {
 	return &c.MultipleDatabasesConfig
 }
@@ -178,7 +176,7 @@ func (c *AppConfig) GetSQLiteConfig() *SQLiteConfig {
 	return &c.SQLiteConfig
 }
 
-// GetSQLiteConfig returns the SQLite Connection String configuration.
+// GetConnectionString returns the SQLite Connection String configuration.
 func (c *SQLiteConfig) GetConnectionString() string {
 	return c.ConnectionString
 }
@@ -190,35 +188,10 @@ func (c *AppConfig) GetPostgreSQLConfig() *PostgreSQLConfig {
 	return &c.PostgreSQLConfig
 }
 
-// GetHost returns the PostgreSQL host configuration.
-func (c *PostgreSQLConfig) GetHost() string {
-	return c.Host
-}
-
-// GetPort returns the PostgreSQL port configuration.
-func (c *PostgreSQLConfig) GetPort() int {
-	return c.Port
-}
-
-// GetUser returns the PostgreSQL user configuration.
-func (c *PostgreSQLConfig) GetUser() string {
-	return c.User
-}
-
-// GetPassword returns the PostgreSQL password configuration.
-func (c *PostgreSQLConfig) GetPassword() string {
-	return c.Password
-}
-
-// GetDbname returns the PostgreSQL dbname configuration.
-func (c *PostgreSQLConfig) GetDbname() string {
-	return c.Dbname
-}
-
-// GetPostgreSQLConnectionString returns the PostgreSQL connection string configuration.
-func (c *PostgreSQLConfig) GetPostgreSQLConnectionString() string {
+// GetConnectionString returns the PostgreSQL connection string configuration.
+func (c *PostgreSQLConfig) GetConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		c.GetHost(), c.GetPort(), c.GetUser(), c.GetPassword(), c.GetDbname())
+		c.Host, c.Port, c.User, c.Password, c.Dbname)
 }
 
 // Firebase Configuration Functions

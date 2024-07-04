@@ -39,7 +39,7 @@ func AuthMiddleware(db *gorm.DB, cfg *config.AppConfig) gin.HandlerFunc {
 		// Validate the token
 		userID, err := validateToken(accessToken, db, cfg)
 		if err != nil {
-			errors.ErrorResponseJSON(c.Writer, errors.ErrUnauthorized, http.StatusUnauthorized)
+			errors.ErrorResponseJSON(c.Writer, err, http.StatusUnauthorized)
 			c.Abort()
 			return
 		}
@@ -64,8 +64,12 @@ func validateToken(accessToken string, db *gorm.DB, cfg *config.AppConfig) (uint
 		return []byte(cfg.GetJWTSecretKey()), nil
 	})
 
-	// Check for parsing errors
+	// Check for parsing errors and token validity
 	if err != nil || !token.Valid {
+		validationError, _ := err.(*jwt.ValidationError)
+		if validationError.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+			return 0, errors.ErrInvalidToken
+		}
 		return 0, errors.ErrInvalidToken
 	}
 
@@ -87,7 +91,10 @@ func validateToken(accessToken string, db *gorm.DB, cfg *config.AppConfig) (uint
 	var storedToken models.AccessToken
 	err = db.Where("user_id = ? AND access_token = ? AND expiration_time > ?", userID, accessToken, time.Now()).First(&storedToken).Error
 	if err != nil {
-		return 0, errors.ErrInvalidToken
+		if err == gorm.ErrRecordNotFound {
+			return 0, errors.ErrInvalidToken
+		}
+		return 0, errors.ErrDatabaseOperationFailed
 	}
 
 	return userID, nil

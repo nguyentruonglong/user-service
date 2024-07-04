@@ -20,17 +20,6 @@ import (
 
 // RegisterUser registers a new user and creates an object in the specified database
 func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	// Start a transaction
-	tx := db.Begin()
-
-	// Rollback the transaction if any error occurs
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			errors.ErrorResponseJSON(c.Writer, errors.ErrTransactionFailed, http.StatusInternalServerError)
-		}
-	}()
-
 	// Parse request body
 	var input models.UserRegisterInput
 	err := c.ShouldBindJSON(&input)
@@ -46,14 +35,25 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 		return
 	}
 
+	// Start a transaction
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			errors.ErrorResponseJSON(c.Writer, errors.ErrTransactionFailed, http.StatusInternalServerError)
+		}
+	}()
+
 	// Check if the email already exists
 	if emailExistsInDatabase(tx, input.Email) {
+		tx.Rollback()
 		errors.ErrorResponseJSON(c.Writer, errors.ErrEmailExistsInDatabase, http.StatusConflict)
 		return
 	}
 
 	// Check if the phone number already exists
 	if phoneNumberExistsInDatabase(tx, input.PhoneNumber) {
+		tx.Rollback()
 		errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberExistsInDatabase, http.StatusConflict)
 		return
 	}
@@ -81,103 +81,110 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 	}
 
 	// Save the user to the appropriate database based on the config
-	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
-		err = tx.Create(user).Error
-		if err != nil {
-			tx.Rollback()
-			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserSQLite, http.StatusInternalServerError)
-			return
-		}
-	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
-		err = tx.Create(user).Error
-		if err != nil {
-			tx.Rollback()
-			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserPostgreSQL, http.StatusInternalServerError)
-			return
-		}
-		// TODO: Insert into PostgreSQL database
-	} else {
-		errors.ErrorResponseJSON(c.Writer, errors.ErrNoValidDatabaseSelected, http.StatusBadRequest)
+	err = saveUserToDatabase(tx, user, cfg)
+	if err != nil {
+		tx.Rollback()
+		errors.ErrorResponseJSON(c.Writer, err, http.StatusInternalServerError)
 		return
 	}
 
-	// Initialize Firebase app if configured to use Firebase
+	// Handle Firebase operations
+	err = handleFirebaseOperations(c, user, input, firebaseClient, cfg)
+	if err != nil {
+		tx.Rollback()
+		errors.ErrorResponseJSON(c.Writer, err, http.StatusInternalServerError)
+		return
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		errors.ErrorResponseJSON(c.Writer, errors.ErrTransactionFailed, http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success message or user data
+	successResponse := models.UserRegisterResponse{
+		Message: "User registered successfully",
+	}
+	c.Header("Content-Type", "application/json")
+	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, successResponse)
+}
+
+func saveUserToDatabase(tx *gorm.DB, user *models.User, cfg *config.AppConfig) error {
+	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+		err := tx.Create(user).Error
+		if err != nil {
+			return errors.ErrFailedToSaveUserSQLite
+		}
+	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+		err := tx.Create(user).Error
+		if err != nil {
+			return errors.ErrFailedToSaveUserPostgreSQL
+		}
+	} else {
+		return errors.ErrNoValidDatabaseSelected
+	}
+	return nil
+}
+
+func handleFirebaseOperations(c *gin.Context, user *models.User, input models.UserRegisterInput, firebaseClient *firebase.App, cfg *config.AppConfig) error {
 	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() || cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
 		ctx := context.Background()
-		// Get a Firebase database client
 		client, err := firebaseClient.Database(ctx)
 		if err != nil {
-			tx.Rollback()
-			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToGetFirebaseClient, http.StatusInternalServerError)
-			return
+			return errors.ErrFailedToGetFirebaseClient
 		}
 
 		exists, err := emailExistsInFirebase(client, input.Email)
 		if err != nil {
-			tx.Rollback()
-			// Handle case where there was an error checking email existence in Firebase
-			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToCheckEmailExistence, http.StatusInternalServerError)
-			return
+			return errors.ErrFailedToCheckEmailExistence
 		}
-
 		if exists {
-			tx.Rollback()
-			// Handle case where email already exists in Firebase
-			errors.ErrorResponseJSON(c.Writer, errors.ErrEmailAlreadyExistsOnFirebase, http.StatusConflict)
-			return
+			return errors.ErrEmailAlreadyExistsOnFirebase
 		}
 
-		// Check if the phone number already exists in Firebase
 		exists, err = phoneNumberExistsInFirebase(client, input.PhoneNumber)
 		if err != nil {
-			tx.Rollback()
-			// Handle case where there was an error checking phone number existence in Firebase
-			errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToCheckPhoneNumberExistence, http.StatusInternalServerError)
-			return
+			return errors.ErrFailedToCheckPhoneNumberExistence
 		}
-
 		if exists {
-			tx.Rollback()
-			// Handle case where phone number already exists in Firebase
-			errors.ErrorResponseJSON(c.Writer, errors.ErrPhoneNumberAlreadyExistsOnFirebase, http.StatusConflict)
-			return
+			return errors.ErrPhoneNumberAlreadyExistsOnFirebase
 		}
 
-		hashedPassword, _ := models.HashPassword(input.Password) // Hash the input password
+		hashedPassword, _ := models.HashPassword(input.Password)
 
 		// Convert the user struct to a map
 		userMap := map[string]interface{}{
 			"id":                             user.ID,
 			"email":                          input.Email,
 			"first_name":                     input.FirstName,
-			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""), // Add default middle_name value
+			"middle_name":                    utils.GetStringOrDefault(&input.MiddleName, ""),
 			"last_name":                      input.LastName,
 			"date_of_birth":                  input.DateOfBirth,
 			"phone_number":                   input.PhoneNumber,
-			"address":                        utils.GetStringOrDefault(&input.Address, ""),   // Add default address value
-			"country":                        utils.GetStringOrDefault(&input.Country, ""),   // Add default country value
-			"province":                       utils.GetStringOrDefault(&input.Province, ""),  // Add default province value
-			"avatar_url":                     utils.GetStringOrDefault(&input.AvatarURL, ""), // Add default avatar_url value
+			"address":                        utils.GetStringOrDefault(&input.Address, ""),
+			"country":                        utils.GetStringOrDefault(&input.Country, ""),
+			"province":                       utils.GetStringOrDefault(&input.Province, ""),
+			"avatar_url":                     utils.GetStringOrDefault(&input.AvatarURL, ""),
 			"password_hash":                  hashedPassword,
-			"is_active":                      utils.GetBoolOrDefault(nil, true),  // Add default is_active value
-			"email_verification_code":        utils.GetStringOrDefault(nil, ""),  // Add default email_verification_code value
-			"phone_number_verification_code": utils.GetStringOrDefault(nil, ""),  // Add default phone_number_verification_code value
-			"is_email_verified":              utils.GetBoolOrDefault(nil, false), // Add default is_email_verified value
-			"is_phone_number_verified":       utils.GetBoolOrDefault(nil, false), // Add default is_phone_number_verified value
-			"earned_points":                  utils.GetIntOrDefault(nil, 0),      // Add default earned_points value
-			"extra_info":                     utils.GetOrDefaultJSON(nil, "{}"),  // Add default extra_info value
-			"created_at":                     time.Now(),                         // Add default created_at value
-			"updated_at":                     time.Now(),                         // Add default updated_at value
+			"is_active":                      utils.GetBoolOrDefault(nil, true),
+			"email_verification_code":        utils.GetStringOrDefault(nil, ""),
+			"phone_number_verification_code": utils.GetStringOrDefault(nil, ""),
+			"is_email_verified":              utils.GetBoolOrDefault(nil, false),
+			"is_phone_number_verified":       utils.GetBoolOrDefault(nil, false),
+			"earned_points":                  utils.GetIntOrDefault(nil, 0),
+			"extra_info":                     utils.GetOrDefaultJSON(nil, "{}"),
+			"created_at":                     time.Now(),
+			"updated_at":                     time.Now(),
 		}
 
 		if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
-			// Push the user data to Firebase Realtime Database
 			ref := client.NewRef("users")
-			newUserRef, err := ref.Push(context.Background(), userMap)
+			newUserRef, err := ref.Push(ctx, userMap)
 			if err != nil {
-				tx.Rollback()
-				errors.ErrorResponseJSON(c.Writer, errors.ErrFailedToSaveUserFirebaseRTDB, http.StatusInternalServerError)
-				return
+				return errors.ErrFailedToSaveUserFirebaseRTDB
 			}
 
 			// Get the unique key generated by Firebase
@@ -189,17 +196,7 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 			// TODO: Implement Firestore insertion
 		}
 	}
-
-	// Commit the transaction
-	tx.Commit()
-
-	// Respond with success message or user data
-	successResponse := models.UserRegisterResponse{
-		Message: "User registered successfully",
-	}
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
-	c.JSON(http.StatusCreated, successResponse)
+	return nil
 }
 
 // Function to check if email already exists in the database

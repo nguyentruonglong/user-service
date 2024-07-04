@@ -12,7 +12,7 @@ import (
 // User represents a user in the system.
 type User struct {
 	gorm.Model
-	Email                       string     `gorm:"primaryKey;unique;not null" json:"email"`
+	Email                       string     `gorm:"unique;not null" json:"email"`
 	FirstName                   string     `json:"first_name" gorm:"not null"`
 	MiddleName                  string     `json:"middle_name"`
 	LastName                    string     `json:"last_name" gorm:"not null"`
@@ -30,11 +30,11 @@ type User struct {
 	AvatarURL                   string     `json:"avatar_url"`
 	EarnedPoints                int        `json:"earned_points" gorm:"default:0"`
 	ExtraInfo                   string     `json:"extra_info" gorm:"type:jsonb;default:'{}'"`
-	CreatedAt                   time.Time  `json:"created_at"`
-	UpdatedAt                   time.Time  `json:"updated_at"`
+	CreatedAt                   time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt                   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt                   *time.Time `gorm:"index"`
-	Roles                       []Role     `gorm:"many2many:user_roles;default:null"`  // Define a many-to-many relationship with roles
-	Groups                      []Group    `gorm:"many2many:user_groups;default:null"` // Define a many-to-many relationship with groups
+	Roles                       []Role     `gorm:"many2many:user_roles"`  // Define a many-to-many relationship with roles
+	Groups                      []Group    `gorm:"many2many:user_groups"` // Define a many-to-many relationship with groups
 }
 
 // UserRegisterInput represents the input for user registration.
@@ -92,31 +92,20 @@ type PhoneNumberVerificationResponse struct {
 	Message string `json:"message"`
 }
 
-// BeforeCreate hook to set CreatedAt, UpdatedAt, and ID
+// BeforeCreate hook to set CreatedAt and UpdatedAt
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
-
-	// If ID is not set (which is the case for auto-incrementing primary keys),
-	// get the max ID from the database and increment it by 1
-	if user.ID == 0 {
-		var maxID int
-		if err := tx.Model(&User{}).Select("COALESCE(MAX(id), 0)").Scan(&maxID).Error; err != nil {
-			return err
-		}
-		user.ID = uint(maxID) + 1
-	}
-
-	return nil
+	return
 }
 
 // BeforeUpdate hook to update UpdatedAt
 func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
 	user.UpdatedAt = time.Now()
-	return nil
+	return
 }
 
-// CreateVerificationCode creates a verification code for the user.
+// CreateVerificationCodes creates verification codes for the user's email and phone number.
 func (u *User) CreateVerificationCodes() {
 	// Generate email verification code (e.g., a random six-digit code)
 	u.EmailVerificationCode = generateVerificationCode()

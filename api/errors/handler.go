@@ -16,7 +16,10 @@ func ErrorResponseJSON(w http.ResponseWriter, err error, statusCode int) {
 		Message: err.Error(),
 	}
 
-	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(statusCode)
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }

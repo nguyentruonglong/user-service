@@ -25,6 +25,7 @@ func InitDB(databaseURL string) (*gorm.DB, error) {
 	return db, nil
 }
 
+// AutoMigrateTables auto-migrates the database tables.
 func AutoMigrateTables(db *gorm.DB) {
 	// Migrate the User and Token models
 	err := db.AutoMigrate(

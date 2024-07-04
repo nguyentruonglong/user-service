@@ -9,7 +9,7 @@ import (
 )
 
 // AccessToken represents a JWT token stored in the database instead of caching.
-// This is not a good idea, the access token should be stored in cache.
+// Ideally, access tokens should be stored in cache for better performance.
 type AccessToken struct {
 	gorm.Model
 	UserID         uint      `gorm:"not null;index:idx_user_access_token_expiration_time"` // User ID associated with the token

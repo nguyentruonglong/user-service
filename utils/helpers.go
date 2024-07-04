@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 )
 
-// GetStringOrDefault returns the value or a default value if the input value is nil
+// GetStringOrDefault returns the value or a default value if the input value is nil.
 func GetStringOrDefault(value *string, defaultValue string) string {
 	if value == nil {
 		return defaultValue
@@ -14,7 +14,7 @@ func GetStringOrDefault(value *string, defaultValue string) string {
 	return *value
 }
 
-// GetBoolOrDefault returns the value or a default value if the input value is nil
+// GetBoolOrDefault returns the value or a default value if the input value is nil.
 func GetBoolOrDefault(value *bool, defaultValue bool) bool {
 	if value == nil {
 		return defaultValue
@@ -22,7 +22,7 @@ func GetBoolOrDefault(value *bool, defaultValue bool) bool {
 	return *value
 }
 
-// GetIntOrDefault returns the value or a default value if the input value is nil
+// GetIntOrDefault returns the value or a default value if the input value is nil.
 func GetIntOrDefault(value *int, defaultValue int) int {
 	if value == nil {
 		return defaultValue
@@ -35,18 +35,16 @@ func GetIntOrDefault(value *int, defaultValue int) int {
 func GetOrDefaultJSON(jsonString *string, defaultValue string) map[string]interface{} {
 	var jsonStr string
 
-	if jsonString == nil {
+	if jsonString == nil || *jsonString == "" {
 		jsonStr = defaultValue
 	} else {
 		jsonStr = *jsonString
-		if jsonStr == "" {
-			jsonStr = defaultValue
-		}
 	}
 
 	var result map[string]interface{}
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
+		// Log the error and return an empty JSON object
 		return make(map[string]interface{})
 	}
 

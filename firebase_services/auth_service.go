@@ -3,12 +3,19 @@
 package firebase_services
 
 import (
+	"context"
+
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"golang.org/x/net/context"
 )
 
 // GetFirebaseAuthClient gets the Firebase Auth client.
 func GetFirebaseAuthClient(app *firebase.App) (*auth.Client, error) {
-	return app.Auth(context.Background())
+	// Retrieve the Firebase Auth client
+	client, err := app.Auth(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

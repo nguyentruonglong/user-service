@@ -42,19 +42,28 @@ func LogoutUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *
 		return
 	}
 
-	// Delete the access token from the database
-	if err := db.Where("user_id = ?", userIDUint).Delete(&models.AccessToken{}).Error; err != nil {
+	// Use a transaction to delete both access and refresh tokens
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// Delete the access token from the database
+		if err := tx.Where("user_id = ?", userIDUint).Delete(&models.AccessToken{}).Error; err != nil {
+			return err
+		}
+
+		// Delete the associated refresh token as well
+		if err := tx.Where("user_id = ? AND refresh_token = ?", userIDUint, input.RefreshToken).Delete(&models.RefreshToken{}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	// Handle transaction errors
+	if err != nil {
 		errors.ErrorResponseJSON(c.Writer, errors.ErrDatabaseOperationFailed, http.StatusInternalServerError)
 		return
 	}
 
-	// Delete the associated refresh token as well
-	if err := db.Where("user_id = ? AND refresh_token = ?", userIDUint, input.RefreshToken).Delete(&models.RefreshToken{}).Error; err != nil {
-		errors.ErrorResponseJSON(c.Writer, errors.ErrDatabaseOperationFailed, http.StatusInternalServerError)
-		return
-	}
-
-	// For simplicity, sending a success response
+	// Sending a success response
 	successResponse := models.UserLogoutResponse{
 		Message: "User logged out successfully",
 	}
