@@ -1,6 +1,8 @@
 package database
 
 import (
+	"context"
+	"log"
 	"user-service/api/models"
 	"user-service/config"
 	"user-service/utils"
@@ -42,27 +44,39 @@ func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.A
 		}
 	}
 
-	// if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
-	// 	ctx := context.Background()
+	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
+		ctx := context.Background()
 
-	// 	// Fetch existing templates from Firebase
-	// 	existingTemplates := make(map[string]models.EmailTemplate)
-	// 	err := firebase_services.GetDataFromRealtimeDB(ctx, "email_templates", &existingTemplates)
-	// 	if err != nil {
-	// 		return err
-	// 	}
+		// Get Firebase database client
+		client, err := firebaseClient.Database(ctx)
+		if err != nil {
+			return err
+		}
 
-	// 	// Merge or update the templates
-	// 	for _, template := range templates {
-	// 		existingTemplates[template.Code] = template
-	// 	}
+		// Fetch existing templates from Firebase
+		var existingTemplates map[string]models.EmailTemplate
+		ref := client.NewRef("email_templates")
+		if err := ref.Get(ctx, &existingTemplates); err != nil {
+			log.Printf("Error fetching data from Firebase: %v", err)
+			return err
+		}
 
-	// 	// Save the merged templates back to Firebase
-	// 	path := "email_templates"
-	// 	if err := firebase_services.SaveDataToRealtimeDB(ctx, path, existingTemplates); err != nil {
-	// 		return err
-	// 	}
-	// }
+		// Initialize map if nil
+		if existingTemplates == nil {
+			existingTemplates = make(map[string]models.EmailTemplate)
+		}
+
+		// Merge or update the templates
+		for _, template := range templates {
+			existingTemplates[template.Code] = template
+		}
+
+		// Save the merged templates back to Firebase
+		if err := ref.Set(ctx, existingTemplates); err != nil {
+			log.Printf("Error saving data to Firebase: %v", err)
+			return err
+		}
+	}
 
 	return nil
 }
