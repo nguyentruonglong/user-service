@@ -21,9 +21,15 @@ import (
 )
 
 func main() {
+	var db *gorm.DB
+	var firebaseClient *firebase.App
+
 	// Parse the command-line argument for the config file path
 	configFilePath := flag.String("config", "config/dev_config.yaml", "Path to the configuration file")
 	flag.Parse()
+
+	// Check if the config file path contains "dev_config.yaml"
+	isDevConfig := strings.Contains(*configFilePath, "dev_config.yaml")
 
 	// Load the application configuration
 	cfg, err := config.LoadConfig(*configFilePath)
@@ -31,17 +37,32 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize the database
-	db, err := initDatabase(cfg)
-	if err != nil {
-		log.Fatalf("Failed to initialize the database: %v", err)
-	}
-	defer database.CloseDB(db)
+	// Access configuration values
+	log.Printf("HTTP Port: %d", cfg.GetHTTPPort())
+	log.Printf("Host: %s", cfg.GetHost())
 
-	// Initialize Firebase app if required
-	firebaseClient, err := initFirebase(cfg)
-	if err != nil {
-		log.Fatalf("Failed to initialize Firebase app: %v", err)
+	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+		// Explicitly open and close the database to ensure it's created
+		db, err = database.InitDB(cfg)
+		if err != nil {
+			log.Fatalf("Failed to initialize the database: %v", err)
+		}
+		defer database.CloseDB(db)
+	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+	}
+
+	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
+		// Initialize Firebase app
+		ctx := context.Background()
+		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg)
+		if err != nil {
+			log.Fatalf("Failed to initialize Firebase app: %v", err)
+		}
+	}
+
+	// Seed initial data
+	if err := database.SeedEmailTemplates(db, firebaseClient, cfg); err != nil {
+		log.Fatalf("Failed to seed email templates: %v", err)
 	}
 
 	// Create a new router using Gin
@@ -51,59 +72,19 @@ func main() {
 	v1.RegisterRoutes(router, db, firebaseClient, cfg)
 
 	// Serve Swagger UI in the development environment only
-	if isDevConfig(*configFilePath) {
+	if isDevConfig {
 		// Serve Swagger UI
 		router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	// Start the HTTP server
-	startServer(router, cfg)
-}
-
-// initDatabase initializes the database based on the configuration.
-func initDatabase(cfg *config.AppConfig) (*gorm.DB, error) {
-	var db *gorm.DB
-	var err error
-
-	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
-		db, err = database.InitDB(cfg.GetDatabaseURL())
-		if err != nil {
-			return nil, err
-		}
-
-		// Perform any necessary migrations
-		database.AutoMigrateTables(db)
-	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
-		// Initialize PostgreSQL database if required
-		// db, err = database.InitPostgreSQLDB(cfg.GetDatabaseURL())
-		// if err != nil {
-		//     return nil, err
-		// }
-	}
-
-	return db, nil
-}
-
-// initFirebase initializes the Firebase app if required by the configuration.
-func initFirebase(cfg *config.AppConfig) (*firebase.App, error) {
-	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() || cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
-		ctx := context.Background()
-		return firebase_services.InitializeFirebaseApp(ctx, cfg)
-	}
-	return nil, nil
-}
-
-// isDevConfig checks if the configuration file path is for the development environment.
-func isDevConfig(configFilePath string) bool {
-	return strings.Contains(configFilePath, "dev_config.yaml")
-}
-
-// startServer starts the HTTP server using Gin.
-func startServer(router *gin.Engine, cfg *config.AppConfig) {
+	// Set up the server configuration
 	host := cfg.GetHost()
 	port := cfg.GetHTTPPort()
+
+	// Start the HTTP server
 	serverAddr := fmt.Sprintf("%s:%d", host, port)
 
+	// Run the HTTP server using Gin's Run method
 	log.Printf("Server is running on http://%s\n", serverAddr)
 	log.Fatal(router.Run(serverAddr))
 }

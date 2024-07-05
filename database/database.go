@@ -1,10 +1,9 @@
-// Database Connection
-
 package database
 
 import (
 	"log"
 	"user-service/api/models"
+	"user-service/config"
 
 	"gorm.io/driver/sqlite" // SQLite driver
 	"gorm.io/gorm"
@@ -12,15 +11,25 @@ import (
 )
 
 // InitDB initializes the SQLite database.
-func InitDB(databaseURL string) (*gorm.DB, error) {
-	// Open the SQLite database
-	db, err := gorm.Open(sqlite.Open(databaseURL), &gorm.Config{})
-	if err != nil {
-		return nil, err
+func InitDB(cfg *config.AppConfig) (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+		db, err = gorm.Open(sqlite.Open(cfg.GetDatabaseURL()), &gorm.Config{})
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	// Additional logic for other database configurations can be added here
+	// e.g., PostgreSQL, Firebase, etc.
 
 	// Enable detailed log mode during development.
 	db.Logger.LogMode(logger.Info)
+
+	// Perform auto-migration of tables
+	AutoMigrateTables(db)
 
 	return db, nil
 }
@@ -35,6 +44,7 @@ func AutoMigrateTables(db *gorm.DB) {
 		&models.Role{},
 		&models.AccessToken{},
 		&models.RefreshToken{},
+		&models.EmailTemplate{},
 	)
 
 	if err != nil {

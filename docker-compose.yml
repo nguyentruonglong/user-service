@@ -1,25 +1,28 @@
 version: '3.8'
 
 services:
-  user-service:
+  user_service:
     build: .
-    container_name: user-service
+    container_name: user_service_container
     ports:
       - "8080:8080"
     depends_on:
       - rabbitmq
     networks:
-      - app-network
+      - user_service_network
 
   rabbitmq:
+    container_name: user_service_rabbitmq_container
     image: "rabbitmq:3-management"
-    container_name: user-service-rabbitmq
     ports:
-      - "15672:15672"
       - "5672:5672"
+      - "15672:15672"
+    expose:
+      - 5672
+      - 15672
     networks:
-      - app-network
+      - user_service_network
 
 networks:
-  app-network:
+  user_service_network:
     driver: bridge

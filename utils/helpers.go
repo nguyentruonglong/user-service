@@ -50,3 +50,12 @@ func GetOrDefaultJSON(jsonString *string, defaultValue string) map[string]interf
 
 	return result
 }
+
+// ToJSONString converts a slice of strings to a JSON-encoded string.
+func ToJSONString(slice []string) string {
+	jsonData, err := json.Marshal(slice)
+	if err != nil {
+		return "[]"
+	}
+	return string(jsonData)
+}
