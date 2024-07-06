@@ -17,8 +17,8 @@ type WorkerConfig struct {
 }
 
 // StartWorker starts a generic worker that listens for messages from a specified queue.
-func StartWorker(ctx context.Context, config WorkerConfig) {
-	conn, ch, msgs, err := setupRabbitMQ(config.QueueName)
+func StartWorker(ctx context.Context, cfg *config.AppConfig, config WorkerConfig) {
+	conn, ch, msgs, err := setupRabbitMQ(config.QueueName, cfg)
 	if err != nil {
 		log.Fatalf("Failed to set up RabbitMQ: %v", err)
 	}
@@ -34,9 +34,9 @@ func StartWorker(ctx context.Context, config WorkerConfig) {
 }
 
 // setupRabbitMQ sets up the RabbitMQ connection, channel, and message queue.
-func setupRabbitMQ(queueName string) (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
+func setupRabbitMQ(queueName string, cfg *config.AppConfig) (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
 	// Establish a connection to RabbitMQ
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(cfg.GetRabbitMQConfig().GetRabbitMQConnectionString())
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -81,7 +81,7 @@ func startWorker(ctx context.Context, msgs <-chan amqp.Delivery, processor func(
 
 // StartAllWorkers starts all the defined workers for the application.
 func StartAllWorkers(ctx context.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	go StartWorker(ctx, WorkerConfig{
+	go StartWorker(ctx, cfg, WorkerConfig{
 		QueueName: "email_queue",
 		Processor: ProcessEmailTask(db, firebaseClient, cfg),
 	})

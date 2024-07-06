@@ -284,6 +284,7 @@ To run the User Service on different environments, follow these instructions:
     After building the application, you can run the server in production mode with the prod configuration using the following command:
 
     ```cmd
+    docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
     user-service.exe --config=config\prod_config.yaml
     ```
 
@@ -292,6 +293,7 @@ To run the User Service on different environments, follow these instructions:
     After building the application, you can run the server in production mode with the prod configuration using the following command:
 
     ```sh
+    $ docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
     $ ./user-service --config=config/prod_config.yaml
     ```
 

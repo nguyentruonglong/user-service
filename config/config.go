@@ -4,6 +4,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -303,6 +304,11 @@ func (c *AppConfig) GetRabbitMQConfig() *RabbitMQConfig {
 
 // GetRabbitMQConnectionString returns the RabbitMQ connection string.
 func (c *RabbitMQConfig) GetRabbitMQConnectionString() string {
+	// Check if the application is running inside a Docker container
+	if os.Getenv("RUNNING_IN_DOCKER") == "true" {
+		c.Host = "rabbitmq" // Docker service name or container name
+	}
+
 	return fmt.Sprintf("amqp://%s:%s@%s:%d/",
 		c.Username, c.Password, c.Host, c.Port)
 }

@@ -17,10 +17,10 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -o user-service main.go
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["./main"]
+# Command to run the executable with the production configuration
+CMD ["./user-service", "--config=config/dev_config.yaml"]

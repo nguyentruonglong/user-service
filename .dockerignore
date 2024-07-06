@@ -1,0 +1,12 @@
+# Ignore the SQLite database file
+development.sqlite3
+
+# Compiled Go binary
+user-service
+user-service.exe
+
+# Other files or directories to ignore
+node_modules
+.git
+.env
+.DS_Store
