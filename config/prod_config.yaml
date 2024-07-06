@@ -32,6 +32,13 @@ postgresql:
   password: "production_postgresql_password"
   dbname: "production_postgresql_dbname"
 
+# RabbitMQ Configuration
+rabbitmq:
+  username: <rabbitmq-user-name>
+  password: <rabbitmq_password>
+  host: <rabbitmq-host>
+  port: <rabbitmq-port>
+
 # Firebase Configuration
 firebase:
   api_key: "production_firebase_api_key"

@@ -29,7 +29,7 @@ func SendEmailVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient *fire
 		Recipient: input.Email,
 	}
 
-	if err := tasks.PublishEmailTask("email_queue", task); err != nil {
+	if err := tasks.PublishEmailTask("email_queue", task, cfg); err != nil {
 		c.JSON(http.StatusInternalServerError, errors.ErrEmailTaskPublishingFailed)
 		return
 	}

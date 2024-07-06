@@ -24,6 +24,15 @@ type AppConfig struct {
 	FirebaseConfig          FirebaseConfig          `mapstructure:"firebase"`
 	EmailConfig             EmailConfig             `mapstructure:"email"`
 	SMSConfig               SMSConfig               `mapstructure:"sms"`
+	RabbitMQConfig          RabbitMQConfig          `mapstructure:"rabbitmq"`
+}
+
+// RabbitMQConfig holds the RabbitMQ configuration.
+type RabbitMQConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
 }
 
 // MultipleDatabasesConfig holds the multiple databases configuration.
@@ -283,4 +292,17 @@ func (c *SMSConfig) GetTwilioAuthToken() string {
 // GetTwilioPhoneNumber returns the Twilio Phone Number configuration.
 func (c *SMSConfig) GetTwilioPhoneNumber() string {
 	return c.TwilioPhoneNumber
+}
+
+// RabbitMQ Configuration Functions
+
+// GetRabbitMQConfig returns the RabbitMQ configuration.
+func (c *AppConfig) GetRabbitMQConfig() *RabbitMQConfig {
+	return &c.RabbitMQConfig
+}
+
+// GetRabbitMQConnectionString returns the RabbitMQ connection string.
+func (c *RabbitMQConfig) GetRabbitMQConnectionString() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%d/",
+		c.Username, c.Password, c.Host, c.Port)
 }

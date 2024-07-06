@@ -5,7 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	v1 "user-service/api/v1/routes" // Import v1 package for API routes
 	"user-service/config"           // Import config package
@@ -50,6 +55,7 @@ func main() {
 		}
 		defer database.CloseDB(db)
 	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+		// Initialize the PostgreSQL database here
 	}
 
 	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
@@ -65,9 +71,6 @@ func main() {
 	if err := database.SeedEmailTemplates(db, firebaseClient, cfg); err != nil {
 		log.Fatalf("Failed to seed email templates: %v", err)
 	}
-
-	// Start all workers
-	tasks.StartAllWorkers(db, firebaseClient, cfg)
 
 	// Create a new router using Gin
 	router := gin.Default()
@@ -87,8 +90,40 @@ func main() {
 
 	// Start the HTTP server
 	serverAddr := fmt.Sprintf("%s:%d", host, port)
+	server := &http.Server{
+		Addr:    serverAddr,
+		Handler: router,
+	}
 
-	// Run the HTTP server using Gin's Run method
+	// Start all workers
+	ctx, cancel := context.WithCancel(context.Background())
+	go tasks.StartAllWorkers(ctx, db, firebaseClient, cfg)
+
+	// Graceful shutdown
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		<-c
+		log.Println("Shutting down server...")
+
+		// Create a deadline to wait for.
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+
+		// Signal the workers to stop
+		cancel()
+
+		// Doesn't block if no connections, but will otherwise wait until the timeout deadline.
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Fatalf("Server forced to shutdown: %v", err)
+		}
+
+		log.Println("Server exiting")
+	}()
+
+	// Run the HTTP server
 	log.Printf("Server is running on http://%s\n", serverAddr)
-	log.Fatal(router.Run(serverAddr))
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %s\n", err)
+	}
 }

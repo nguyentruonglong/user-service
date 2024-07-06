@@ -32,6 +32,13 @@ postgresql:
   password: "postgresql_password"
   dbname: "postgresql_dbname"
 
+# RabbitMQ Configuration
+rabbitmq:
+  username: "guest"
+  password: "guest"
+  host: "localhost"
+  port: 5672
+
 # Firebase Configuration
 firebase:
   api_key: "firebase_api_key"
