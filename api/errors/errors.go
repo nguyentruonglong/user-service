@@ -13,13 +13,13 @@ var (
 	// ErrInvalidInput occurs when the input provided is invalid.
 	ErrInvalidInput = errors.New("invalid input provided")
 
-	// ErrInvalidEmail is returned for invalid email format provided
+	// ErrInvalidEmail is returned for invalid email format provided.
 	ErrInvalidEmail = errors.New("invalid email format provided")
 
-	// ErrWeakPassword is returned for weak password provided
+	// ErrWeakPassword is returned for weak password provided.
 	ErrWeakPassword = errors.New("weak password provided")
 
-	// ErrInvalidPhoneNumber is returned for invalid phone number format provided
+	// ErrInvalidPhoneNumber is returned for invalid phone number format provided.
 	ErrInvalidPhoneNumber = errors.New("invalid phone number format provided")
 
 	// ErrEmailExistsInDatabase indicates that the email already exists in the database.
@@ -84,4 +84,10 @@ var (
 
 	// ErrSMSFailure occurs when sending an SMS fails.
 	ErrSMSFailure = errors.New("SMS sending failure")
+
+	// ErrInvalidEmailVerificationInput occurs when the email verification input is invalid.
+	ErrInvalidEmailVerificationInput = errors.New("invalid email verification input")
+
+	// ErrEmailTaskPublishingFailed occurs when publishing an email task to the queue fails.
+	ErrEmailTaskPublishingFailed = errors.New("failed to publish email task")
 )

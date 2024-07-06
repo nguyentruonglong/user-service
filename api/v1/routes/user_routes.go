@@ -34,9 +34,8 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.Ap
 		controllers.SendPhoneNumberVerificationCode(c, db, firebaseClient, cfg)
 	})
 
-	// Uncomment and implement the following route when ready to send verification email.
 	// Route to send verification email.
-	// router.POST("/api/v1/send-verification-email", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
-	// 	controllers.SendEmailVerificationCode(c, db, firebaseClient, cfg)
-	// })
+	router.POST("/api/v1/send-verification-email", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
+		controllers.SendEmailVerificationCode(c, db, firebaseClient, cfg)
+	})
 }

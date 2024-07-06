@@ -12,6 +12,7 @@ import (
 	"user-service/database"         // Import database package
 	_ "user-service/docs"           // Import docs
 	"user-service/firebase_services"
+	"user-service/tasks"
 
 	firebase "firebase.google.com/go" // Import firebase package
 	"github.com/gin-gonic/gin"
@@ -64,6 +65,9 @@ func main() {
 	if err := database.SeedEmailTemplates(db, firebaseClient, cfg); err != nil {
 		log.Fatalf("Failed to seed email templates: %v", err)
 	}
+
+	// Start all workers
+	tasks.StartAllWorkers(db, firebaseClient, cfg)
 
 	// Create a new router using Gin
 	router := gin.Default()

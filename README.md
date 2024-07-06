@@ -348,7 +348,7 @@ curl -X POST http://localhost:8080/api/v1/register -d '{
 - Sample cURL Request:
 
 ```curl
-curl -X POST http://localhost:8080/api/v1/verify-email -d '{"email": "user@example.com", "verification_code": "123456"}'
+curl -X POST http://localhost:8080/api/v1/send-verification-email -d '{"email": "example@example.com", "first_name": "John", "verification_link": "http://example.com/verify?token=123456"}'
 ```
 
 #### 3. User Login

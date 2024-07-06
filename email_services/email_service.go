@@ -48,8 +48,8 @@ func RenderTemplate(tmpl *models.EmailTemplate, data map[string]interface{}) (st
 	return renderedBody.String(), nil
 }
 
-// SendEmail sends an email using the specified template and data.
-func SendEmail(db *gorm.DB, templateCode string, data map[string]interface{}) error {
+// SendEmail sends an email using the specified template, data, and recipient.
+func SendEmail(db *gorm.DB, templateCode string, recipient string, data map[string]interface{}) error {
 	// Get the email template
 	tmpl, err := GetEmailTemplate(db, templateCode)
 	if err != nil {
@@ -63,8 +63,9 @@ func SendEmail(db *gorm.DB, templateCode string, data map[string]interface{}) er
 	}
 
 	// Here you would add your email sending logic, e.g., using an SMTP server or an email API.
-	// For demonstration purposes, we'll just print the rendered email body.
-	println(body)
+	// For demonstration purposes, we'll just print the rendered email body and recipient.
+	println("To:", recipient)
+	println("Body:", body)
 
 	return nil
 }

@@ -31,3 +31,15 @@ func (e *EmailTemplate) BeforeUpdate(tx *gorm.DB) (err error) {
 	e.UpdatedAt = time.Now()
 	return
 }
+
+// EmailVerificationInput represents the input data for email verification.
+type EmailVerificationInput struct {
+	Email            string `json:"email" binding:"required,email"`
+	FirstName        string `json:"first_name" binding:"required"`
+	VerificationLink string `json:"verification_link" binding:"required,url"`
+}
+
+// EmailVerificationResponse represents the response after sending the verification email.
+type EmailVerificationResponse struct {
+	Message string `json:"message"`
+}
