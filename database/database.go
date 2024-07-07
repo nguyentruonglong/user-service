@@ -15,7 +15,10 @@ func InitDB(cfg *config.AppConfig) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
-	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+	// Get the multiple databases configuration
+	dbConfig := cfg.GetMultipleDatabaseConfig()
+
+	if dbConfig.GetUseSQLite() {
 		db, err = gorm.Open(sqlite.Open(cfg.GetDatabaseURL()), &gorm.Config{})
 		if err != nil {
 			return nil, err

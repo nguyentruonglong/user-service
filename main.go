@@ -47,18 +47,21 @@ func main() {
 	log.Printf("HTTP Port: %d", cfg.GetHTTPPort())
 	log.Printf("Host: %s", cfg.GetHost())
 
-	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+	// Get the multiple databases configuration
+	dbConfig := cfg.GetMultipleDatabaseConfig()
+
+	if dbConfig.GetUseSQLite() {
 		// Explicitly open and close the database to ensure it's created
 		db, err = database.InitDB(cfg)
 		if err != nil {
 			log.Fatalf("Failed to initialize the database: %v", err)
 		}
 		defer database.CloseDB(db)
-	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+	} else if dbConfig.GetUsePostgreSQL() {
 		// Initialize the PostgreSQL database here
 	}
 
-	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
+	if dbConfig.GetUseRealtimeDatabase() {
 		// Initialize Firebase app
 		ctx := context.Background()
 		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg)

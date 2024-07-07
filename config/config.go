@@ -12,20 +12,20 @@ import (
 
 // AppConfig holds the application configuration.
 type AppConfig struct {
-	HTTPPort                int                     `mapstructure:"http_port"`
-	HTTPSPort               int                     `mapstructure:"https_port"`
-	Host                    string                  `mapstructure:"host"`
-	JWTSecretKey            string                  `mapstructure:"jwt_secret_key"`
-	JWTExpiration           time.Duration           `mapstructure:"jwt_expiration"`
-	RefreshTokenExpiration  time.Duration           `mapstructure:"refresh_token_expiration"`
-	FCMDeviceToken          string                  `mapstructure:"fcm_device_token"`
-	MultipleDatabasesConfig MultipleDatabasesConfig `mapstructure:"multiple_databases"`
-	SQLiteConfig            SQLiteConfig            `mapstructure:"sqlite"`
-	PostgreSQLConfig        PostgreSQLConfig        `mapstructure:"postgresql"`
-	FirebaseConfig          FirebaseConfig          `mapstructure:"firebase"`
-	EmailConfig             EmailConfig             `mapstructure:"email"`
-	SMSConfig               SMSConfig               `mapstructure:"sms"`
-	RabbitMQConfig          RabbitMQConfig          `mapstructure:"rabbitmq"`
+	HTTPPort               int                    `mapstructure:"http_port"`
+	HTTPSPort              int                    `mapstructure:"https_port"`
+	Host                   string                 `mapstructure:"host"`
+	JWTSecretKey           string                 `mapstructure:"jwt_secret_key"`
+	JWTExpiration          time.Duration          `mapstructure:"jwt_expiration"`
+	RefreshTokenExpiration time.Duration          `mapstructure:"refresh_token_expiration"`
+	FCMDeviceToken         string                 `mapstructure:"fcm_device_token"`
+	MultipleDatabaseConfig MultipleDatabaseConfig `mapstructure:"multiple_databases"`
+	SQLiteConfig           SQLiteConfig           `mapstructure:"sqlite"`
+	PostgreSQLConfig       PostgreSQLConfig       `mapstructure:"postgresql"`
+	FirebaseConfig         FirebaseConfig         `mapstructure:"firebase"`
+	EmailConfig            EmailConfig            `mapstructure:"email"`
+	SMSConfig              SMSConfig              `mapstructure:"sms"`
+	RabbitMQConfig         RabbitMQConfig         `mapstructure:"rabbitmq"`
 }
 
 // RabbitMQConfig holds the RabbitMQ configuration.
@@ -36,8 +36,8 @@ type RabbitMQConfig struct {
 	Port     int    `mapstructure:"port"`
 }
 
-// MultipleDatabasesConfig holds the multiple databases configuration.
-type MultipleDatabasesConfig struct {
+// MultipleDatabaseConfig holds the multiple databases configuration.
+type MultipleDatabaseConfig struct {
 	UseRealtimeDatabase bool `mapstructure:"use_realtime_database"`
 	UseFirestore        bool `mapstructure:"use_firestore"`
 	UseSQLite           bool `mapstructure:"use_sqlite"`
@@ -71,10 +71,19 @@ type FirebaseConfig struct {
 
 // EmailConfig holds the email service configuration.
 type EmailConfig struct {
+	Provider string     `mapstructure:"provider"` // New field added for email provider
+	Mailjet  SMTPConfig `mapstructure:"mailjet"`
+	Sendgrid SMTPConfig `mapstructure:"sendgrid"`
+	Generic  SMTPConfig `mapstructure:"generic"`
+}
+
+// SMTPConfig holds the SMTP configuration.
+type SMTPConfig struct {
 	SMTPServer   string `mapstructure:"smtp_server"`
 	SMTPPort     int    `mapstructure:"smtp_port"`
 	SMTPUser     string `mapstructure:"smtp_user"`
 	SMTPPassword string `mapstructure:"smtp_password"`
+	SenderEmail  string `mapstructure:"sender_email"`
 }
 
 // SMSConfig holds the SMS service configuration.
@@ -144,9 +153,9 @@ func (c *AppConfig) GetFCMDeviceToken() string {
 
 // GetDatabaseURL returns the database URL based on the configured database type.
 func (c *AppConfig) GetDatabaseURL() string {
-	if c.GetMultipleDatabasesConfig().GetUseSQLite() {
+	if c.GetMultipleDatabaseConfig().GetUseSQLite() {
 		return c.GetSQLiteConfig().GetConnectionString()
-	} else if c.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+	} else if c.GetMultipleDatabaseConfig().GetUsePostgreSQL() {
 		return c.GetPostgreSQLConfig().GetConnectionString()
 	}
 
@@ -154,28 +163,28 @@ func (c *AppConfig) GetDatabaseURL() string {
 	return c.SQLiteConfig.ConnectionString
 }
 
-// GetMultipleDatabasesConfig returns the configuration for multiple databases.
-func (c *AppConfig) GetMultipleDatabasesConfig() *MultipleDatabasesConfig {
-	return &c.MultipleDatabasesConfig
+// GetMultipleDatabaseConfig returns the configuration for multiple databases.
+func (c *AppConfig) GetMultipleDatabaseConfig() *MultipleDatabaseConfig {
+	return &c.MultipleDatabaseConfig
 }
 
 // GetUseSQLite returns the UseSQLite configuration.
-func (c *MultipleDatabasesConfig) GetUseSQLite() bool {
+func (c *MultipleDatabaseConfig) GetUseSQLite() bool {
 	return c.UseSQLite
 }
 
 // GetUsePostgreSQL returns the UsePostgreSQL configuration.
-func (c *MultipleDatabasesConfig) GetUsePostgreSQL() bool {
+func (c *MultipleDatabaseConfig) GetUsePostgreSQL() bool {
 	return c.UsePostgreSQL
 }
 
 // GetUseRealtimeDatabase returns the UseRealtimeDatabase configuration.
-func (c *MultipleDatabasesConfig) GetUseRealtimeDatabase() bool {
+func (c *MultipleDatabaseConfig) GetUseRealtimeDatabase() bool {
 	return c.UseRealtimeDatabase
 }
 
 // GetUseFirestore returns the UseFirestore configuration.
-func (c *MultipleDatabasesConfig) GetUseFirestore() bool {
+func (c *MultipleDatabaseConfig) GetUseFirestore() bool {
 	return c.UseFirestore
 }
 
@@ -253,24 +262,19 @@ func (c *AppConfig) GetEmailConfig() *EmailConfig {
 	return &c.EmailConfig
 }
 
-// GetSMTPServer returns the SMTP server configuration.
-func (c *EmailConfig) GetSMTPServer() string {
-	return c.SMTPServer
+// GetMailjetConfig returns the Mailjet SMTP configuration.
+func (c *EmailConfig) GetMailjetConfig() *SMTPConfig {
+	return &c.Mailjet
 }
 
-// GetSMTPPort returns the SMTP port configuration.
-func (c *EmailConfig) GetSMTPPort() int {
-	return c.SMTPPort
+// GetSendgridConfig returns the Sendgrid SMTP configuration.
+func (c *EmailConfig) GetSendgridConfig() *SMTPConfig {
+	return &c.Sendgrid
 }
 
-// GetSMTPUser returns the SMTP user configuration.
-func (c *EmailConfig) GetSMTPUser() string {
-	return c.SMTPUser
-}
-
-// GetSMTPPassword returns the SMTP password configuration.
-func (c *EmailConfig) GetSMTPPassword() string {
-	return c.SMTPPassword
+// GetGenericSMTPConfig returns the generic SMTP configuration.
+func (c *EmailConfig) GetGenericSMTPConfig() *SMTPConfig {
+	return &c.Generic
 }
 
 // SMS Configuration Functions

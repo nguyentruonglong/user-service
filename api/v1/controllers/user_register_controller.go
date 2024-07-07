@@ -113,12 +113,15 @@ func RegisterUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg
 }
 
 func saveUserToDatabase(tx *gorm.DB, user *models.User, cfg *config.AppConfig) error {
-	if cfg.GetMultipleDatabasesConfig().GetUseSQLite() {
+	// Get the multiple databases configuration
+	dbConfig := cfg.GetMultipleDatabaseConfig()
+
+	if dbConfig.GetUseSQLite() {
 		err := tx.Create(user).Error
 		if err != nil {
 			return errors.ErrFailedToSaveUserSQLite
 		}
-	} else if cfg.GetMultipleDatabasesConfig().GetUsePostgreSQL() {
+	} else if dbConfig.GetUsePostgreSQL() {
 		err := tx.Create(user).Error
 		if err != nil {
 			return errors.ErrFailedToSaveUserPostgreSQL
@@ -130,7 +133,10 @@ func saveUserToDatabase(tx *gorm.DB, user *models.User, cfg *config.AppConfig) e
 }
 
 func handleFirebaseOperations(c *gin.Context, user *models.User, input models.UserRegisterInput, firebaseClient *firebase.App, cfg *config.AppConfig) error {
-	if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() || cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
+	// Get the multiple databases configuration
+	dbConfig := cfg.GetMultipleDatabaseConfig()
+
+	if dbConfig.GetUseRealtimeDatabase() || dbConfig.GetUseFirestore() {
 		ctx := context.Background()
 		client, err := firebaseClient.Database(ctx)
 		if err != nil {
@@ -180,7 +186,7 @@ func handleFirebaseOperations(c *gin.Context, user *models.User, input models.Us
 			"updated_at":                     time.Now(),
 		}
 
-		if cfg.GetMultipleDatabasesConfig().GetUseRealtimeDatabase() {
+		if dbConfig.GetUseRealtimeDatabase() {
 			ref := client.NewRef("users")
 			newUserRef, err := ref.Push(ctx, userMap)
 			if err != nil {
@@ -192,7 +198,7 @@ func handleFirebaseOperations(c *gin.Context, user *models.User, input models.Us
 			log.Printf("Firebase Key: %s", firebaseKey)
 		}
 
-		if cfg.GetMultipleDatabasesConfig().GetUseFirestore() {
+		if dbConfig.GetUseFirestore() {
 			// TODO: Implement Firestore insertion
 		}
 	}

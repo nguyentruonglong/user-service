@@ -35,7 +35,7 @@ func ProcessEmailTask(db *gorm.DB, firebaseClient *firebase.App, cfg *config.App
 			return
 		}
 
-		err := email_services.SendEmail(db, task.TemplateCode, task.Recipient, task.Data)
+		err := email_services.SendEmail(db, task.TemplateCode, task.Recipient, task.Data, cfg)
 		if err != nil {
 			log.Printf("Error sending email: %v", err)
 		}

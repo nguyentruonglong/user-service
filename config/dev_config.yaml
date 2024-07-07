@@ -65,10 +65,27 @@ fcm_device_token: "<fcm-device-token>"
 
 # Email Configuration
 email:
-  smtp_server: "smtp.example.com"
-  smtp_port: 587
-  smtp_user: "smtp_username"
-  smtp_password: "smtp_password"
+  provider: "mailjet"  # This can be "mailjet", "sendgrid", etc
+  mailjet:
+    smtp_server: "in-v3.mailjet.com"
+    smtp_port: 587
+    smtp_user: "254fbd0e8d3d72bb7e58e8763dd351ae"
+    smtp_password: "98af62ae7a3975fb96c95c030657a3b4"
+    sender_email: "mailjet_sender_email@example.com"
+  
+  sendgrid:
+    smtp_server: "smtp.sendgrid.net"
+    smtp_port: 587
+    smtp_user: "apikey"
+    smtp_password: "<sendgrid_api_key>"
+    sender_email: "sendgrid_sender_email@example.com"
+
+  generic:
+    smtp_server: "smtp.example.com"
+    smtp_port: 587
+    smtp_user: "smtp_username"
+    smtp_password: "smtp_password"
+    sender_email: "generic_sender_email@example.com"
 
 # SMS Configuration
 sms:
