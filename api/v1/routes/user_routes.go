@@ -38,4 +38,9 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB, firebaseClient *firebase.Ap
 	router.POST("/api/v1/send-verification-email", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
 		controllers.SendEmailVerificationCode(c, db, firebaseClient, cfg)
 	})
+
+	// Route to verify email.
+	router.POST("/api/v1/verify-email", middlewares.AuthMiddleware(db, cfg), func(c *gin.Context) {
+		controllers.VerifyEmail(c, db, firebaseClient, cfg)
+	})
 }

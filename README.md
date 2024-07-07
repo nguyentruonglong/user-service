@@ -29,8 +29,8 @@ user-service/
     |   |   |   |-- user_login_controller.go          # User Login Controller
     |   |   |   |-- user_logout_controller.go         # User Logout Controller
     |   |   |   |-- user_register_controller.go       # User Register Controller
-    |   |   |   |-- user_verification_controller.go   # User Verification Controller
-    |   |   |   |-- verification_controller.go        # Verification Controller
+    |   |   |   |-- phone_verification_controller.go  # Phone Verification Controller
+    |   |   |   |-- email_verification_controller.go  # Email Verification Controller
     |   |
     |   |   |-- routes/
     |   |   |   |-- notification_routes.go            # Notification Routes
@@ -83,8 +83,6 @@ user-service/
     |   |-- email_service.go                          # Email Service
     |   |-- password_reset_email.go                   # Password Reset Email Service
     |   |-- verification_email.go                     # Email Verification Service
-    |
-    |-- file.txt                                      # Sample File
     |
     |-- firebase_services/
     |   |-- auth_service.go                           # Firebase Authentication Service

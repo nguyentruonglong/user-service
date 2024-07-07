@@ -40,3 +40,13 @@ type EmailVerificationInput struct {
 type EmailVerificationResponse struct {
 	Message string `json:"message"`
 }
+
+// VerifyEmailInput represents the input data for verifying the email.
+type VerifyEmailInput struct {
+	VerificationCode string `json:"verification_code" binding:"required"`
+}
+
+// VerifyEmailResponse represents the response after verifying the email.
+type VerifyEmailResponse struct {
+	Message string `json:"message"`
+}

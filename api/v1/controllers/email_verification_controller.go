@@ -43,7 +43,7 @@ func SendEmailVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient *fire
 
 	// Generate and hash the verification code
 	verificationCode := generateEmailVerificationCode()
-	hashedCode := hashEmailVerificationCode(verificationCode)
+	hashedCode := hashEmailVerificationCode(verificationCode + user.Email)
 
 	// Update the user's EmailVerificationCode field with the hashed code
 	user.EmailVerificationCode = hashedCode
@@ -69,6 +69,47 @@ func SendEmailVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient *fire
 
 	response := models.EmailVerificationResponse{
 		Message: "Verification email sent",
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// VerifyEmail handles the email verification using the provided verification code
+func VerifyEmail(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
+	var input models.VerifyEmailInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidVerificationCode)
+		return
+	}
+
+	// Get the user ID from the authentication middleware
+	userID, _ := c.Get("userID")
+
+	// Fetch user details from the database
+	var user models.User
+	if err := db.First(&user, userID.(uint)).Error; err != nil {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrUserNotFound, http.StatusNotFound)
+		return
+	}
+
+	// Check if the verification code matches
+	hashedCode := hashEmailVerificationCode(input.VerificationCode + user.Email)
+	if user.EmailVerificationCode != hashedCode {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidVerificationCode)
+		return
+	}
+
+	// Mark the email as verified
+	user.IsEmailVerified = true
+	user.EmailVerificationCode = "" // Clear the verification code
+	if err := db.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, errors.ErrDatabaseOperationFailed)
+		return
+	}
+
+	response := models.VerifyEmailResponse{
+		Message: "Email verified successfully",
 	}
 
 	c.JSON(http.StatusOK, response)

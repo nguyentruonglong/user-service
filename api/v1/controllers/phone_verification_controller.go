@@ -46,7 +46,7 @@ func SendPhoneNumberVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient
 	}
 
 	// Hash the verification code securely before saving to the database
-	hashedCode := hashVerificationCode(phoneNumberVerificationCode)
+	hashedCode := hashVerificationCode(phoneNumberVerificationCode + user.PhoneNumber)
 
 	// Save the verification code to the user record in the database
 	user.PhoneNumberVerificationCode = hashedCode
