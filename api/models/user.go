@@ -87,8 +87,22 @@ type UserLogoutResponse struct {
 	Message string `json:"message"`
 }
 
-// PhoneNumberVerificationResponse represents the response format for the send phone number verification code API.
-type PhoneNumberVerificationResponse struct {
+// SendPhoneVerificationCodeInput represents the input data for sending phone number verification.
+type SendPhoneVerificationCodeInput struct {
+}
+
+// SendPhoneVerificationCodeResponse represents the response format for sending the phone number verification code API.
+type SendPhoneVerificationCodeResponse struct {
+	Message string `json:"message"`
+}
+
+// PhoneVerificationInput represents the input for verifying a phone number.
+type PhoneVerificationInput struct {
+	VerificationCode string `json:"verification_code" binding:"required"`
+}
+
+// PhoneVerificationResponse represents the response format for the phone number verification APIs.
+type PhoneVerificationResponse struct {
 	Message string `json:"message"`
 }
 

@@ -56,8 +56,48 @@ func SendPhoneNumberVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient
 	}
 
 	// Respond with success
-	successResponse := models.PhoneNumberVerificationResponse{
+	successResponse := models.SendPhoneVerificationCodeResponse{
 		Message: "Verification SMS sent successfully",
+	}
+	c.JSON(http.StatusOK, successResponse)
+}
+
+// VerifyPhoneNumber handles the verification of the user's phone number using the provided verification code.
+func VerifyPhoneNumber(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
+	var input models.PhoneVerificationInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidPhoneNumberVerificationInput)
+		return
+	}
+
+	// Get the user ID from the authentication middleware
+	userID, _ := c.Get("userID")
+
+	// Fetch user details from the database
+	var user models.User
+	if err := db.First(&user, userID.(uint)).Error; err != nil {
+		errors.ErrorResponseJSON(c.Writer, errors.ErrUserNotFound, http.StatusNotFound)
+		return
+	}
+
+	// Check if the provided verification code matches the hashed code in the database
+	hashedCode := hashVerificationCode(input.VerificationCode + user.PhoneNumber)
+	if hashedCode != user.PhoneNumberVerificationCode {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidPhoneNumberVerificationInput)
+		return
+	}
+
+	// Mark the phone number as verified
+	user.IsPhoneNumberVerified = true
+	user.PhoneNumberVerificationCode = ""
+	if err := db.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, errors.ErrDatabaseOperationFailed)
+		return
+	}
+
+	// Respond with success
+	successResponse := models.PhoneVerificationResponse{
+		Message: "Phone number verified successfully",
 	}
 	c.JSON(http.StatusOK, successResponse)
 }

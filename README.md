@@ -47,8 +47,7 @@ user-service/
     |-- middlewares/
     |   |-- auth_middleware.go                        # Authentication Middleware
     |
-    |-- models/
-    |   |-- context.go                                
+    |-- models/                          
     |   |-- email_template.go                         # Email Template Model
     |   |-- group.go                                  # Group Model
     |   |-- permission.go                             # Permission Model

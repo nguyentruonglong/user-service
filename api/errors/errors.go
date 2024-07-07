@@ -97,6 +97,6 @@ var (
 	// ErrEmailNotProvided indicates that the email is not provided.
 	ErrEmailNotProvided = errors.New("email not provided")
 
-	// ErrInvalidVerificationCode indicates that the provided verification code is invalid.
-	ErrInvalidVerificationCode = errors.New("invalid verification code")
+	// ErrInvalidPhoneNumberVerificationInput indicates that the provided verification code is invalid.
+	ErrInvalidPhoneNumberVerificationInput = errors.New("invalid phone number verification input")
 )

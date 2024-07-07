@@ -67,7 +67,7 @@ func SendEmailVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient *fire
 		return
 	}
 
-	response := models.EmailVerificationResponse{
+	response := models.SendEmailVerificationCodeResponse{
 		Message: "Verification email sent",
 	}
 
@@ -76,10 +76,10 @@ func SendEmailVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient *fire
 
 // VerifyEmail handles the email verification using the provided verification code
 func VerifyEmail(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) {
-	var input models.VerifyEmailInput
+	var input models.EmailVerificationInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, errors.ErrInvalidVerificationCode)
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidEmailVerificationInput)
 		return
 	}
 
@@ -96,7 +96,7 @@ func VerifyEmail(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg 
 	// Check if the verification code matches
 	hashedCode := hashEmailVerificationCode(input.VerificationCode + user.Email)
 	if user.EmailVerificationCode != hashedCode {
-		c.JSON(http.StatusBadRequest, errors.ErrInvalidVerificationCode)
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidEmailVerificationInput)
 		return
 	}
 
@@ -108,7 +108,7 @@ func VerifyEmail(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg 
 		return
 	}
 
-	response := models.VerifyEmailResponse{
+	response := models.EmailVerificationResponse{
 		Message: "Email verified successfully",
 	}
 

@@ -32,21 +32,21 @@ func (e *EmailTemplate) BeforeUpdate(tx *gorm.DB) (err error) {
 	return
 }
 
-// EmailVerificationInput represents the input data for email verification.
-type EmailVerificationInput struct {
+// SendEmailVerificationCodeInput represents the input data for sending email verification.
+type SendEmailVerificationCodeInput struct {
 }
 
-// EmailVerificationResponse represents the response after sending the verification email.
-type EmailVerificationResponse struct {
+// SendEmailVerificationCodeResponse represents the response after sending the verification email.
+type SendEmailVerificationCodeResponse struct {
 	Message string `json:"message"`
 }
 
-// VerifyEmailInput represents the input data for verifying the email.
-type VerifyEmailInput struct {
+// EmailVerificationInput represents the input data for verifying the email.
+type EmailVerificationInput struct {
 	VerificationCode string `json:"verification_code" binding:"required"`
 }
 
-// VerifyEmailResponse represents the response after verifying the email.
-type VerifyEmailResponse struct {
+// EmailVerificationResponse represents the response after verifying the email.
+type EmailVerificationResponse struct {
 	Message string `json:"message"`
 }
