@@ -12,8 +12,11 @@ services:
         condition: service_healthy
     networks:
       - user_service_network
+    volumes:
+      - .:/app
     environment:
       - RUNNING_IN_DOCKER=true
+    restart: always
 
   rabbitmq:
     container_name: user_service_rabbitmq_container

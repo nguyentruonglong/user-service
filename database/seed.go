@@ -19,8 +19,8 @@ func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.A
 			Code:        "EMAIL_VERIFICATION",
 			Name:        "Email Verification",
 			Subject:     "Verify your email address",
-			Body:        "<p>Dear {{.FirstName}},</p><p>Please click the link below to verify your email address:</p><p><a href=\"{{.VerificationLink}}\">Verify Email</a></p><p>Thank you!</p>",
-			Params:      utils.ToJSONString([]string{"FirstName", "VerificationLink"}),
+			Body:        "<p>Dear {{.FirstName}},</p><p>Your verification code is:</p><p><strong>{{.VerificationCode}}</strong></p><p>Thank you!</p>",
+			Params:      utils.ToJSONString([]string{"FirstName", "VerificationCode"}),
 			Description: "Template for verifying a user's email address",
 		},
 		{

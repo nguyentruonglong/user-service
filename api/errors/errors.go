@@ -90,4 +90,10 @@ var (
 
 	// ErrEmailTaskPublishingFailed occurs when publishing an email task to the queue fails.
 	ErrEmailTaskPublishingFailed = errors.New("failed to publish email task")
+
+	// ErrEmailAlreadyVerified indicates that the email is already verified.
+	ErrEmailAlreadyVerified = errors.New("email already verified")
+
+	// ErrEmailNotProvided indicates that the email is not provided.
+	ErrEmailNotProvided = errors.New("email not provided")
 )
