@@ -88,6 +88,9 @@ var (
 	// ErrInvalidEmailVerificationInput occurs when the email verification input is invalid.
 	ErrInvalidEmailVerificationInput = errors.New("invalid email verification input")
 
+	// ErrInvalidVerificationCode indicates that the provided verification code is invalid or expired.
+	ErrInvalidVerificationCode = errors.New("invalid or expired verification code")
+
 	// ErrEmailTaskPublishingFailed occurs when publishing an email task to the queue fails.
 	ErrEmailTaskPublishingFailed = errors.New("failed to publish email task")
 

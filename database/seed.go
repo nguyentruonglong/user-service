@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"log"
+	"os"
 	"user-service/api/models"
 	"user-service/config"
 	"user-service/utils"
@@ -17,21 +18,33 @@ func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.A
 	// Get the multiple databases configuration
 	dbConfig := cfg.GetMultipleDatabaseConfig()
 
+	// Read email template files
+	emailVerificationBody, err := os.ReadFile("email_templates/email_verification.html")
+	if err != nil {
+		return err
+	}
+
+	passwordResetBody, err := os.ReadFile("email_templates/password_reset.html")
+	if err != nil {
+		return err
+	}
+
+	// Define email templates with detailed content and internal CSS
 	templates := []models.EmailTemplate{
 		{
 			Code:        "EMAIL_VERIFICATION",
 			Name:        "Email Verification",
 			Subject:     "Verify your email address",
-			Body:        "<p>Dear {{.FirstName}},</p><p>Your verification code is:</p><p><strong>{{.VerificationCode}}</strong></p><p>Thank you!</p>",
-			Params:      utils.ToJSONString([]string{"FirstName", "VerificationCode"}),
+			Body:        string(emailVerificationBody),
+			Params:      utils.ToJSONString([]string{"FirstName", "VerificationCode", "ExpiryTime"}),
 			Description: "Template for verifying a user's email address",
 		},
 		{
 			Code:        "PASSWORD_RESET",
 			Name:        "Password Reset",
 			Subject:     "Reset your password",
-			Body:        "<p>Dear {{.FirstName}},</p><p>Please click the link below to reset your password:</p><p><a href=\"{{.ResetLink}}\">Reset Password</a></p><p>If you did not request a password reset, please ignore this email.</p>",
-			Params:      utils.ToJSONString([]string{"FirstName", "ResetLink"}),
+			Body:        string(passwordResetBody),
+			Params:      utils.ToJSONString([]string{"FirstName", "ResetLink", "ExpiryTime"}),
 			Description: "Template for resetting a user's password",
 		},
 	}

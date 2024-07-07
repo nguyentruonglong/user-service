@@ -39,6 +39,43 @@ rabbitmq:
   host: <rabbitmq-host>
   port: <rabbitmq-port>
 
+# Email Configuration
+email:
+  provider: "mailjet"  # This can be "mailjet", "sendgrid", etc
+  mailjet:
+    smtp_server: "in-v3.mailjet.com"
+    smtp_port: 587
+    smtp_user: "smtp_username"
+    smtp_password: "smtp_password"
+    sender_email: "mailjet_sender_email@example.com"
+    sender_name: "Mailjet Sender"
+
+  sendgrid:
+    smtp_server: "smtp.sendgrid.net"
+    smtp_port: 587
+    smtp_user: "apikey"
+    smtp_password: "<sendgrid_api_key>"
+    sender_email: "sendgrid_sender_email@example.com"
+    sender_name: "Sendgrid Sender"
+
+  generic:
+    smtp_server: "smtp.example.com"
+    smtp_port: 587
+    smtp_user: "smtp_username"
+    smtp_password: "smtp_password"
+    sender_email: "generic_sender_email@example.com"
+    sender_name: "Generic Sender"
+
+  verification_email_expiration: <verification-email-expiration>   # Expiration time for the verification email
+  password_reset_email_expiration: <password-reset-email-expiration>  # Expiration time for the password reset email
+
+# SMS Configuration
+sms:
+  twilio_account_sid: "production_twilio_account_sid"
+  twilio_auth_token: "production_twilio_auth_token"
+  twilio_phone_number: "+1234567890"
+
+
 # Firebase Configuration
 firebase:
   api_key: "production_firebase_api_key"
@@ -61,33 +98,3 @@ firebase:
 
 # FCM Device Token
 fcm_device_token: "<fcm-device-token>"
-
-# Email Configuration
-email:
-  provider: "mailjet"  # This can be "mailjet", "sendgrid", etc
-  mailjet:
-    smtp_server: "in-v3.mailjet.com"
-    smtp_port: 587
-    smtp_user: "smtp_username"
-    smtp_password: "smtp_password"
-    sender_email: "mailjet_sender_email@example.com"
-
-  sendgrid:
-    smtp_server: "smtp.sendgrid.net"
-    smtp_port: 587
-    smtp_user: "apikey"
-    smtp_password: "<sendgrid_api_key>"
-    sender_email: "sendgrid_sender_email@example.com"
-
-  generic:
-    smtp_server: "smtp.example.com"
-    smtp_port: 587
-    smtp_user: "smtp_username"
-    smtp_password: "smtp_password"
-    sender_email: "generic_sender_email@example.com"
-
-# SMS Configuration
-sms:
-  twilio_account_sid: "production_twilio_account_sid"
-  twilio_auth_token: "production_twilio_auth_token"
-  twilio_phone_number: "+1234567890"

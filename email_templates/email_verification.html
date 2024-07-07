@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            font-size: 26px;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 10px;
+        }
+        p {
+            color: #444444;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #d32f2f;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px dashed #d32f2f;
+            padding: 10px;
+            background-color: #fce4e4;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #999999;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .code {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Verification</h1>
+        <p>Dear {{.FirstName}},</p>
+        <p>Your verification code is:</p>
+        <p class="code">{{.VerificationCode}}</p>
+        <p>Please use this code within the next {{.ExpiryTime}} to verify your email address.</p>
+        <p>Thank you for being a valued member of our community!</p>
+        <div class="footer">© 2024 Organization. All rights reserved.</div>
+    </div>
+</body>
+</html>

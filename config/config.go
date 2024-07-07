@@ -71,10 +71,12 @@ type FirebaseConfig struct {
 
 // EmailConfig holds the email service configuration.
 type EmailConfig struct {
-	Provider string     `mapstructure:"provider"` // New field added for email provider
-	Mailjet  SMTPConfig `mapstructure:"mailjet"`
-	Sendgrid SMTPConfig `mapstructure:"sendgrid"`
-	Generic  SMTPConfig `mapstructure:"generic"`
+	Provider                     string        `mapstructure:"provider"` // New field added for email provider
+	Mailjet                      SMTPConfig    `mapstructure:"mailjet"`
+	Sendgrid                     SMTPConfig    `mapstructure:"sendgrid"`
+	Generic                      SMTPConfig    `mapstructure:"generic"`
+	VerificationEmailExpiration  time.Duration `mapstructure:"verification_email_expiration"`
+	PasswordResetEmailExpiration time.Duration `mapstructure:"password_reset_email_expiration"`
 }
 
 // SMTPConfig holds the SMTP configuration.
@@ -84,6 +86,7 @@ type SMTPConfig struct {
 	SMTPUser     string `mapstructure:"smtp_user"`
 	SMTPPassword string `mapstructure:"smtp_password"`
 	SenderEmail  string `mapstructure:"sender_email"`
+	SenderName   string `mapstructure:"sender_name"`
 }
 
 // SMSConfig holds the SMS service configuration.

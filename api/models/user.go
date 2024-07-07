@@ -19,6 +19,7 @@ type User struct {
 	PasswordHash                string     `json:"password_hash"`
 	IsActive                    bool       `json:"is_active" gorm:"default:true"`
 	EmailVerificationCode       string     `json:"email_verification_code"`
+	EmailVerificationExpiry     time.Time  `json:"email_verification_expiry"`
 	PhoneNumberVerificationCode string     `json:"phone_number_verification_code"`
 	DateOfBirth                 time.Time  `json:"date_of_birth"`
 	PhoneNumber                 string     `json:"phone_number"`

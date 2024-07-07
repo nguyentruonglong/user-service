@@ -79,33 +79,33 @@ func SendEmail(db *gorm.DB, templateCode string, recipient string, data map[stri
 // sendMailjetEmail sends an email using Mailjet.
 func sendMailjetEmail(cfg *config.AppConfig, subject, recipient, body string) error {
 	mailjetConfig := cfg.EmailConfig.Mailjet
-	return sendSMTPEmail(mailjetConfig.SMTPServer, mailjetConfig.SMTPPort, mailjetConfig.SMTPUser, mailjetConfig.SMTPPassword, mailjetConfig.SenderEmail, subject, recipient, body)
+	return sendSMTPEmail(mailjetConfig.SMTPServer, mailjetConfig.SMTPPort, mailjetConfig.SMTPUser, mailjetConfig.SMTPPassword, mailjetConfig.SenderEmail, mailjetConfig.SenderName, subject, recipient, body)
 }
 
 // sendSendgridEmail sends an email using Sendgrid.
 func sendSendgridEmail(cfg *config.AppConfig, subject, recipient, body string) error {
 	sendgridConfig := cfg.EmailConfig.Sendgrid
-	return sendSMTPEmail(sendgridConfig.SMTPServer, sendgridConfig.SMTPPort, sendgridConfig.SMTPUser, sendgridConfig.SMTPPassword, sendgridConfig.SenderEmail, subject, recipient, body)
+	return sendSMTPEmail(sendgridConfig.SMTPServer, sendgridConfig.SMTPPort, sendgridConfig.SMTPUser, sendgridConfig.SMTPPassword, sendgridConfig.SenderEmail, sendgridConfig.SenderName, subject, recipient, body)
 }
 
 // sendGenericEmail sends an email using a generic SMTP server.
 func sendGenericEmail(cfg *config.AppConfig, subject, recipient, body string) error {
 	genericConfig := cfg.EmailConfig.Generic
-	return sendSMTPEmail(genericConfig.SMTPServer, genericConfig.SMTPPort, genericConfig.SMTPUser, genericConfig.SMTPPassword, genericConfig.SenderEmail, subject, recipient, body)
+	return sendSMTPEmail(genericConfig.SMTPServer, genericConfig.SMTPPort, genericConfig.SMTPUser, genericConfig.SMTPPassword, genericConfig.SenderEmail, genericConfig.SenderName, subject, recipient, body)
 }
 
 // sendSMTPEmail is a helper function to send an email using an SMTP server.
-func sendSMTPEmail(smtpServer string, smtpPort int, smtpUser, smtpPass, senderEmail, subject, recipient, body string) error {
+func sendSMTPEmail(smtpServer string, smtpPort int, smtpUser, smtpPass, senderEmail, senderName, subject, recipient, body string) error {
 	// Set up authentication information.
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpServer)
 
 	// Prepare email
-	from := senderEmail
+	from := fmt.Sprintf("%s <%s>", senderName, senderEmail)
 	to := recipient
 	msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\nMIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n%s", from, to, subject, body)
 
 	// Send email
-	err := smtp.SendMail(fmt.Sprintf("%s:%d", smtpServer, smtpPort), auth, from, []string{to}, []byte(msg))
+	err := smtp.SendMail(fmt.Sprintf("%s:%d", smtpServer, smtpPort), auth, senderEmail, []string{to}, []byte(msg))
 	if err != nil {
 		return err
 	}
