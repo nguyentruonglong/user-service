@@ -318,6 +318,22 @@ To run the User Service on different environments, follow these instructions:
 
 These commands will launch the User Service with the specified configuration, whether in development or production mode. Be sure to customize the configurations in `dev_config.yaml` and `prod_config.yaml` to suit your environment settings.
 
+### Swagger generation:
+
+Ensure you have the required dependencies installed. You'll need `gin-swagger` and `swag`:
+
+```bash
+$ go install github.com/swaggo/swag/cmd/swag@latest
+$ export PATH=$PATH:$(go env GOPATH)/bin
+$ source ~/.zshrc
+```
+
+```bash
+$ go get -u github.com/swaggo/swag/cmd/swag
+$ go get -u github.com/swaggo/gin-swagger
+$ go get -u github.com/swaggo/files
+```
+
 ### Functions
 
 The User Service provides the following functions:

@@ -26,6 +26,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// @title User Service API
+// @version 1.0
+// @description This is a sample user service API.
+// @host localhost:8080
+// @BasePath /api/v1
+
 func main() {
 	var db *gorm.DB
 	var firebaseClient *firebase.App
@@ -89,7 +95,8 @@ func main() {
 
 	// Serve Swagger UI in the development environment only
 	if isDevConfig {
-		router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		// Swagger endpoint
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	// Start the HTTP server
