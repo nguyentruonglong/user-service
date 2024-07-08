@@ -44,7 +44,7 @@ func ProcessEmailTask(db *gorm.DB, firebaseClient *firebase.App, cfg *config.App
 
 // PublishEmailTask publishes an email task to the RabbitMQ queue.
 func PublishEmailTask(queueName string, task EmailTask, cfg *config.AppConfig) error {
-	conn, ch, err := setupRabbitMQConnection(cfg)
+	conn, ch, err := setupRabbitMQConnection(cfg.RabbitMQConfig)
 	if err != nil {
 		return err
 	}

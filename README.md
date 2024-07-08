@@ -12,6 +12,9 @@ The User Service is a robust and versatile Golang-based application meticulously
 - User Profile Management: The User Service enables users to maintain and personalize their profiles, including essential details such as first name, last name, profile picture, and more.
 - User Search and Listing: Users can search for other users based on various criteria and view user listings with optional pagination and filtering options.
 - Sending Notifications: Authenticated users can send notifications to others through multiple channels.
+- Role Management: Manage user roles within the system to control access permissions.
+- Group Management: Organize users into groups for collective management and permissions.
+- User Activity Logs: Track and record user activities for audit and monitoring purposes.
 
 This comprehensive suite of features caters to a wide range of user management and authentication needs, making the User Service a reliable and indispensable component for building secure and user-centric applications.
 
@@ -319,182 +322,209 @@ These commands will launch the User Service with the specified configuration, wh
 
 The User Service provides the following functions:
 
-- User registration and management.
-- Email and phone number verification.
-- Phone number validation using Twilio.
-- Bearer token-based authentication.
-- User login and logout.
-- Password reset.
-- User profile management.
-- User search and listing.
-- Sending notifications to users.
+- **User Registration and Management:** Allows users to register and manage their accounts with email verification and secure password management.
+- **Email and Phone Number Verification:** Ensures users can verify their contact details through secure codes sent via email and SMS.
+- **User Login and Logout:** Supports secure login mechanisms and clean logout processes, helping maintain user session integrity.
+- **Password Reset:** Facilitates users in resetting their forgotten passwords through a secure email-based process.
+- **User Profile Management:** Enables users to update and maintain their profiles with personal information and profile pictures.
+- **User Search and Listing:** Provides functionality to search for other users by various criteria and view listings, supporting pagination and filtering.
+- **Sending Notifications:** Allows authenticated users to send notifications through multiple channels.
+- **Role Management:** Admins can create, modify, and assign roles to users, managing permissions systematically.
+- **Group Management:** Supports the organization of users into groups for more streamlined management.
+- **User Activity Logs:** Tracks user activities within the system for audit and monitoring purposes.
 
 ### APIs
 
-User Management APIs
-
-#### 1. User Registration
-
-- Endpoint: /api/v1/register (POST)
-
-- Description: Allows users to register by providing their information.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/register -d '{
-  "email": "user@example.com",
-  "first_name": "John",
-  "middle_name": "Doe",
-  "last_name": "Smith",
-  "password": "secure_password",
-  "date_of_birth": "1990-01-01T00:00:00Z",
-  "phone_number": "1234567890",
-  "address": "1234 Elm St, Some City, Some Country",
-  "country": "Some Country",
-  "province": "Some Province",
-  "avatar_url": "http://example.com/avatar.jpg"
-}'
-```
-
-### Email Validation APIs
-
-#### 2. Send Verification Code via Email
-
-- Endpoint: /api/v1/send-verification-email (POST)
-- Description: Allows users to request a verification code to be sent to their email.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/send-verification-email -H "Authorization: Bearer <access-token>"
-```
-
-#### 3. Verify Email with Code
-
-- Endpoint: /api/v1/verify-email/ (POST)
-
-- Description: Allows users to verify their email addresses by providing the received verification code.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/verify-email -d '{"verification_code": "123456"}' -H "Authorization: Bearer <access-token>"
-```
-
-### Phone Number Validation APIs (Twilio-based)
-
-#### 4. Send Verification Code via SMS
-
-- Endpoint: /api/v1/send-verification-sms (POST)
-
-- Description: Allows users to request a verification code to be sent to their phone number via SMS.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/send-verification-sms -H "Authorization: Bearer <access-token>"
-```
-
-#### 5. Verify Phone Number with Code
-
-- Endpoint: /api/v1/verify-phone-number (POST)
-
-- Description: Allows users to verify their phone number by providing the received verification code.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/verify-phone-number -d '{"verification_code": "123456"}' -H "Authorization: Bearer <access-token>"
-```
-
-#### 6. User Login
-
-- Endpoint: /api/v1/login (POST)
-
-- Description: Allows users to log in and obtain a Bearer token by providing their email and password.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/login -d '{"email": "user@example.com", "password": "secure_password"}'
-```
-
-#### 7. User Logout
-
-- Endpoint: /api/v1/logout (POST)
-
-- Description: Allows users to log out, effectively invalidating their Bearer token.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/logout -H "Authorization: Bearer <access-token>" -d '{"refresh_token": "<refresh-token>"}'
-```
-
-#### 8. Password Reset
-
-- Endpoint: /api/v1/reset-password (POST)
-
-- Description: Allows users to reset their password by sending a password reset email.
-
-- Sample cURL Request:
-
-```curl
-curl -X POST http://localhost:8080/api/v1/reset-password -d '{"email": "user@example.com"}'
-```
-
-#### 9. User Profile Management
-
-- Endpoint: /api/v1/profile (GET, PUT)
-
-- Description: Allows users to retrieve their own profile information and update it, including their profile picture.
-
-- Sample cURL Requests:
-
-##### Retrieve Profile:
-
-```curl
-curl -X GET http://localhost:8080/api/v1/profile -H "Authorization: Bearer <access-token>"
-```
-
-##### Update Profile:
-
-```curl
-curl -X PUT http://localhost:8080/api/v1/profile -d '{"first_name": "John", "last_name": "Doe"}' -H "Authorization: Bearer <access-token>"
-```
-
-### User Search and Listing APIs
-
-#### 8. User Search
-
-- Endpoint: /api/v1/user-search (GET)
-
-- Description: Allows users to search for other users based on specified criteria.
-
-- Sample cURL Request:
-
-```curl
-curl -X GET 'http://localhost:8080/api/v1/user-search?query=John&country=US'
-```
-
-#### 10. User Listing
-
-- Endpoint: /api/v1/user-list (GET)
-
-- Description: Lists users with optional pagination and filtering options.
-
-- Sample cURL Request:
-
-```curl
-curl -X GET 'http://localhost:8080/api/v1/user-list?page=1&per_page=10'
-```
-
-### User Notification APIs
-
-#### 11. Send Notification
-
-
+#### User Management APIs
+
+1. **User Registration**
+   - **Endpoint:** `/api/v1/register` (POST)
+   - **Description:** Allows users to register by providing their information.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/register -d '{
+       "email": "user@example.com",
+       "first_name": "John",
+       "middle_name": "Doe",
+       "last_name": "Smith",
+       "password": "secure_password",
+       "date_of_birth": "1990-01-01T00:00:00Z",
+       "phone_number": "1234567890",
+       "address": "1234 Elm St, Some City, Some Country",
+       "country": "Some Country",
+       "province": "Some Province",
+       "avatar_url": "http://example.com/avatar.jpg"
+     }'
+     ```
+
+2. **Send Verification Code via Email**
+   - **Endpoint:** `/api/v1/send-verification-email` (POST)
+   - **Description:** Allows users to request a verification code to be sent to their email.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/send-verification-email -H "Authorization: Bearer <access-token>"
+     ```
+
+3. **Verify Email with Code**
+   - **Endpoint:** `/api/v1/verify-email/` (POST)
+   - **Description:** Allows users to verify their email addresses by providing the received verification code.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/verify-email -d '{"verification_code": "123456"}' -H "Authorization: Bearer <access-token>"
+     ```
+
+4. **Send Verification Code via SMS**
+   - **Endpoint:** `/api/v1/send-verification-sms` (POST)
+   - **Description:** Allows users to request a verification code to be sent to their phone number via SMS.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/send-verification-sms -H "Authorization: Bearer <access-token>"
+     ```
+
+5. **Verify Phone Number with Code**
+   - **Endpoint:** `/api/v1/verify-phone-number` (POST)
+   - **Description:** Allows users to verify their phone number by providing the received verification code.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/verify-phone-number -d '{"verification_code": "123456"}' -H "Authorization: Bearer <access-token>"
+     ```
+
+6. **User Login**
+   - **Endpoint:** `/api/v1/login` (POST)
+   - **Description:** Allows users to log in and obtain a Bearer token by providing their email and password.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/login -d '{"email": "user@example.com", "password": "secure_password"}'
+     ```
+
+7. **User Logout**
+   - **Endpoint:** `/api/v1/logout` (POST)
+   - **Description:** Allows users to log out, effectively invalidating their Bearer token.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/logout -H "Authorization: Bearer <access-token>" -d '{"refresh_token": "<refresh-token>"}'
+     ```
+
+8. **Password Reset**
+   - **Endpoint:** `/api/v1/reset-password` (POST)
+   - **Description:** Allows users to reset their password by sending a password reset email.
+   - **Sample cURL Request:**
+     ```bash
+     curl -X POST http://localhost:8080/api/v1/reset-password -d '{"email": "user@example.com"}'
+     ```
+
+9. **User Profile Management**
+   - **Endpoints:** `/api/v1/profile` (GET, PUT)
+   - **Description:** Allows users to retrieve and update their profile information.
+   - **Sample cURL Requests:**
+     ```bash
+     # Retrieve Profile
+     curl -X GET http://localhost:8080/api/v1/profile -H "Authorization: Bearer <access-token>"
+     # Update Profile
+     curl -X PUT http://localhost:8080/api/v1/profile -d '{"first_name": "John", "last_name": "Doe"}' -H "Authorization: Bearer <access-token>"
+     ```
+
+10. **User Search**
+    - **Endpoint:** `/api/v1/user-search` (GET)
+    - **Description:** Allows users to search for other users based on specified criteria.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X GET 'http://localhost:8080/api/v1/user-search?query=John&country=US'
+      ```
+
+11. **User Listing**
+    - **Endpoint:** `/api/v1/user-list` (GET)
+    - **Description:** Lists users with optional pagination and filtering options.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X GET 'http://localhost:8080/api/v1/user-list?page=1&per_page=10'
+      ```
+
+#### Role Management APIs
+
+12. **Create Role**
+    - **Endpoint:** `/api/v1/roles` (POST)
+    - **Description:** Allows creation of a new role with specific permissions.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X POST http://localhost:8080/api/v1/roles -d '{
+        "name": "Administrator",
+        "permissions": ["create_user", "delete_user"]
+      }'
+      ```
+
+13. **Update Role**
+    - **Endpoint:** `/api/v1/roles/{role_id}` (PUT)
+    - **Description:** Updates an existing role's permissions.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X PUT http://localhost:8080/api/v1/roles/{role_id} -d '{
+        "permissions": ["update_user"]
+      }'
+      ```
+
+14. **Delete Role**
+    - **Endpoint:** `/api/v1/roles/{role_id}` (DELETE)
+    - **Description:** Deletes a role.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X DELETE http://localhost:8080/api/v1/roles/{role_id}
+      ```
+
+#### Group Management APIs
+
+15. **Create Group**
+    - **Endpoint:** `/api/v1/groups` (POST)
+    - **Description:** Allows creation of a new user group.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X POST http://localhost:8080/api/v1/groups -d '{
+        "name": "Support Team",
+        "user_ids": [1, 2, 3]
+      }'
+      ```
+
+16. **Update Group**
+    - **Endpoint:** `/api/v1/groups/{group_id}` (PUT)
+    - **Description:** Updates an existing group's details.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X PUT http://localhost:8080/api/v1/groups/{group_id} -d '{
+        "name": "Technical Support",
+        "user_ids": [1, 2, 3, 4]
+      }'
+      ```
+
+17. **Delete Group**
+    - **Endpoint:** `/api/v1/groups/{group_id}` (DELETE)
+    - **Description:** Deletes a user group.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X DELETE http://localhost:8080/api/v1/groups/{group_id}
+      ```
+
+#### User Activity Logs APIs
+
+18. **View User Activity**
+    - **Endpoint:** `/api/v1/users/{user_id}/activities` (GET)
+    - **Description:** Retrieves the activity logs of a specific user.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X GET http://localhost:8080/api/v1/users/{user_id}/activities
+      ```
+
+#### Notification APIs
+
+19. **Send Notification**
+    - **Endpoint:** `/api/v1/notifications/send` (POST)
+    - **Description:** Allows users or admins to send notifications to other users.
+    - **Sample cURL Request:**
+      ```bash
+      curl -X POST http://localhost:8080/api/v1/notifications/send -d '{
+        "user_id": "1",
+        "message": "Hello, your account has been updated."
+      }' -H "Authorization: Bearer <access-token>"
+      ```
 
 ## Contributing
 

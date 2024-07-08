@@ -15,9 +15,6 @@ import (
 
 // SeedEmailTemplates seeds initial email templates to the database and optionally to Firebase Realtime Database.
 func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.AppConfig) error {
-	// Get the multiple databases configuration
-	dbConfig := cfg.GetMultipleDatabaseConfig()
-
 	// Read email template files
 	emailVerificationBody, err := os.ReadFile("email_templates/email_verification.html")
 	if err != nil {
@@ -49,8 +46,8 @@ func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.A
 		},
 	}
 
-	if dbConfig.GetUseSQLite() || dbConfig.GetUsePostgreSQL() {
-		// Bulk upsert operation for SQLite or PostgreSQL
+	// Check if SQLite or PostgreSQL is enabled and perform bulk upsert
+	if cfg.DatabaseConfig.SQLite.Enabled || cfg.DatabaseConfig.PostgreSQL.Enabled {
 		err := db.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "code"}},
 			UpdateAll: true,
@@ -60,7 +57,8 @@ func SeedEmailTemplates(db *gorm.DB, firebaseClient *firebase.App, cfg *config.A
 		}
 	}
 
-	if dbConfig.GetUseRealtimeDatabase() {
+	// Check if Firebase Realtime Database is enabled and perform operations
+	if cfg.DatabaseConfig.Firebase.Enabled {
 		ctx := context.Background()
 
 		// Get Firebase database client

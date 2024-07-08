@@ -44,35 +44,41 @@ func main() {
 	}
 
 	// Access configuration values
-	log.Printf("HTTP Port: %d", cfg.GetHTTPPort())
-	log.Printf("Host: %s", cfg.GetHost())
+	log.Printf("HTTP Port: %d", cfg.HTTPPort)
+	log.Printf("Host: %s", cfg.Host)
 
-	// Get the multiple databases configuration
-	dbConfig := cfg.GetMultipleDatabaseConfig()
-
-	if dbConfig.GetUseSQLite() {
-		// Explicitly open and close the database to ensure it's created
-		db, err = database.InitDB(cfg)
+	// Initialize SQLite database if enabled
+	if cfg.DatabaseConfig.SQLite.Enabled {
+		db, err = database.InitSQLiteDB(cfg.DatabaseConfig.SQLite.ConnectionString())
 		if err != nil {
-			log.Fatalf("Failed to initialize the database: %v", err)
+			log.Fatalf("Failed to initialize SQLite database: %v", err)
 		}
 		defer database.CloseDB(db)
-	} else if dbConfig.GetUsePostgreSQL() {
-		// Initialize the PostgreSQL database here
 	}
 
-	if dbConfig.GetUseRealtimeDatabase() {
-		// Initialize Firebase app
+	// Initialize PostgreSQL database if enabled
+	if cfg.DatabaseConfig.PostgreSQL.Enabled {
+		db, err = database.InitPostgreSQLDB(cfg.DatabaseConfig.PostgreSQL.ConnectionString())
+		if err != nil {
+			log.Fatalf("Failed to initialize PostgreSQL database: %v", err)
+		}
+		defer database.CloseDB(db)
+	}
+
+	// Initialize Firebase if enabled
+	if cfg.DatabaseConfig.Firebase.Enabled {
 		ctx := context.Background()
-		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg)
+		firebaseClient, err = firebase_services.InitializeFirebaseApp(ctx, cfg.DatabaseConfig.Firebase)
 		if err != nil {
 			log.Fatalf("Failed to initialize Firebase app: %v", err)
 		}
 	}
 
 	// Seed initial data
-	if err := database.SeedEmailTemplates(db, firebaseClient, cfg); err != nil {
-		log.Fatalf("Failed to seed email templates: %v", err)
+	if db != nil {
+		if err := database.SeedEmailTemplates(db, firebaseClient, cfg); err != nil {
+			log.Fatalf("Failed to seed email templates: %v", err)
+		}
 	}
 
 	// Create a new router using Gin
@@ -83,22 +89,17 @@ func main() {
 
 	// Serve Swagger UI in the development environment only
 	if isDevConfig {
-		// Serve Swagger UI
 		router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	// Set up the server configuration
-	host := cfg.GetHost()
-	port := cfg.GetHTTPPort()
-
 	// Start the HTTP server
-	serverAddr := fmt.Sprintf("%s:%d", host, port)
+	serverAddr := fmt.Sprintf("%s:%d", cfg.Host, cfg.HTTPPort)
 	server := &http.Server{
 		Addr:    serverAddr,
 		Handler: router,
 	}
 
-	// Start all workers
+	// Start background workers
 	ctx, cancel := context.WithCancel(context.Background())
 	go tasks.StartAllWorkers(ctx, db, firebaseClient, cfg)
 
@@ -124,9 +125,9 @@ func main() {
 		log.Println("Server exiting")
 	}()
 
-	// Run the HTTP server
+	// Listen and serve
 	log.Printf("Server is running on http://%s\n", serverAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("listen: %s\n", err)
+		log.Fatalf("Server failed to start: %s\n", err)
 	}
 }

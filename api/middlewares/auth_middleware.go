@@ -61,7 +61,7 @@ func validateToken(accessToken string, db *gorm.DB, cfg *config.AppConfig) (uint
 		}
 
 		// Provide the secret key for validation
-		return []byte(cfg.GetJWTSecretKey()), nil
+		return []byte(cfg.JWTSecretKey), nil
 	})
 
 	// Check for parsing errors and token validity

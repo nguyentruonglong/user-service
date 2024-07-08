@@ -12,26 +12,6 @@ jwt_secret_key: <jwt-secret-key>
 jwt_expiration: <jwt-expiration>
 refresh_token_expiration: <refresh-token-expiration>
 
-# Multiple Databases Configuration
-multiple_databases:
-  use_realtime_database: true
-  use_firestore: true
-  use_sqlite: false  # Disable SQLite for production
-  use_postgresql: true  # Enable PostgreSQL for production
-
-# SQLite Configuration (disabled for production)
-sqlite:
-  driver: sqlite3
-  connection_string: "production.sqlite3"
-
-# PostgreSQL Configuration
-postgresql:
-  host: "production_postgresql_host"
-  port: 5432
-  user: "production_postgresql_user"
-  password: "production_postgresql_password"
-  dbname: "production_postgresql_dbname"
-
 # RabbitMQ Configuration
 rabbitmq:
   username: <rabbitmq-user-name>
@@ -75,26 +55,38 @@ sms:
   twilio_auth_token: "production_twilio_auth_token"
   twilio_phone_number: "+1234567890"
 
-
-# Firebase Configuration
-firebase:
-  api_key: "production_firebase_api_key"
-  project_id: "production_firebase_project_id"
-  storage_bucket: "production_firebase_storage_bucket"
-  auth_domain: "production_firebase_auth_domain"
-  database_url: "https://production-firebase-database-url.firebaseio.com"
-  service_account_key: '{
-    "type": "service_account",
-    "project_id": "project_id",
-    "private_key_id": "private_key_id",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nPrivate_Key\n-----END PRIVATE KEY-----\n",
-    "client_email": "client_email",
-    "client_id": "client_id",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "client_x509_cert_url"
-  }'
-
 # FCM Device Token
 fcm_device_token: "<fcm-device-token>"
+
+# Database Configuration
+database:
+  sqlite:
+    enabled: false  # Disable SQLite for production
+    driver: sqlite3
+    file: "production.sqlite3"
+  postgresql:
+    enabled: true  # Enable PostgreSQL for production
+    host: "production_postgresql_host"
+    port: 5432
+    user: "production_postgresql_user"
+    password: "production_postgresql_password"
+    dbname: "production_postgresql_dbname"
+  firebase:
+    enabled: true
+    api_key: "production_firebase_api_key"
+    project_id: "production_firebase_project_id"
+    storage_bucket: "production_firebase_storage_bucket"
+    auth_domain: "production_firebase_auth_domain"
+    database_url: "https://production-firebase-database-url.firebaseio.com"
+    service_account_key: '{
+      "type": "service_account",
+      "project_id": "project_id",
+      "private_key_id": "private_key_id",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nPrivate_Key\n-----END PRIVATE KEY-----\n",
+      "client_email": "client_email",
+      "client_id": "client_id",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "client_x509_cert_url"
+    }'

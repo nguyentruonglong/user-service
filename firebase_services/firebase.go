@@ -16,19 +16,19 @@ var (
 )
 
 // InitializeFirebaseApp initializes the Firebase app and Realtime Database client.
-func InitializeFirebaseApp(ctx context.Context, cfg *config.AppConfig) (*firebase.App, error) {
+func InitializeFirebaseApp(ctx context.Context, cfg config.FirebaseConfig) (*firebase.App, error) {
 	if app != nil {
 		return app, nil
 	}
 
 	// Create a Firebase options struct with the provided service account key
-	opt := option.WithCredentialsJSON([]byte(cfg.FirebaseConfig.ServiceAccountKey))
+	opt := option.WithCredentialsJSON([]byte(cfg.ServiceAccountKey))
 
 	// Create a Firebase Config struct with the necessary fields
 	firebaseConfig := &firebase.Config{
-		ProjectID:     cfg.FirebaseConfig.ProjectID,
-		DatabaseURL:   cfg.FirebaseConfig.DatabaseURL,
-		StorageBucket: cfg.FirebaseConfig.StorageBucket,
+		ProjectID:     cfg.ProjectID,
+		DatabaseURL:   cfg.DatabaseURL,
+		StorageBucket: cfg.StorageBucket,
 	}
 
 	// Initialize the Firebase app with the provided options

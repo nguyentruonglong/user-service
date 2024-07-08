@@ -18,7 +18,7 @@ type WorkerConfig struct {
 
 // StartWorker starts a generic worker that listens for messages from a specified queue.
 func StartWorker(ctx context.Context, cfg *config.AppConfig, config WorkerConfig) {
-	conn, ch, msgs, err := setupRabbitMQ(config.QueueName, cfg)
+	conn, ch, msgs, err := setupRabbitMQ(config.QueueName, cfg.RabbitMQConfig)
 	if err != nil {
 		log.Fatalf("Failed to set up RabbitMQ: %v", err)
 	}
@@ -34,9 +34,9 @@ func StartWorker(ctx context.Context, cfg *config.AppConfig, config WorkerConfig
 }
 
 // setupRabbitMQ sets up the RabbitMQ connection, channel, and message queue.
-func setupRabbitMQ(queueName string, cfg *config.AppConfig) (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
+func setupRabbitMQ(queueName string, cfg config.RabbitMQConfig) (*amqp.Connection, *amqp.Channel, <-chan amqp.Delivery, error) {
 	// Establish a connection to RabbitMQ
-	conn, err := amqp.Dial(cfg.GetRabbitMQConfig().GetRabbitMQConnectionString())
+	conn, err := amqp.Dial(cfg.GetRabbitMQConnectionString())
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -89,8 +89,8 @@ func StartAllWorkers(ctx context.Context, db *gorm.DB, firebaseClient *firebase.
 	// Add more workers here if needed
 }
 
-func setupRabbitMQConnection(cfg *config.AppConfig) (*amqp.Connection, *amqp.Channel, error) {
-	conn, err := amqp.Dial(cfg.GetRabbitMQConfig().GetRabbitMQConnectionString())
+func setupRabbitMQConnection(cfg config.RabbitMQConfig) (*amqp.Connection, *amqp.Channel, error) {
+	conn, err := amqp.Dial(cfg.GetRabbitMQConnectionString())
 	if err != nil {
 		return nil, nil, err
 	}

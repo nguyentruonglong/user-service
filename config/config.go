@@ -1,5 +1,3 @@
-// Configuration Module
-
 package config
 
 import (
@@ -12,46 +10,44 @@ import (
 
 // AppConfig holds the application configuration.
 type AppConfig struct {
-	HTTPPort               int                    `mapstructure:"http_port"`
-	HTTPSPort              int                    `mapstructure:"https_port"`
-	Host                   string                 `mapstructure:"host"`
-	JWTSecretKey           string                 `mapstructure:"jwt_secret_key"`
-	JWTExpiration          time.Duration          `mapstructure:"jwt_expiration"`
-	RefreshTokenExpiration time.Duration          `mapstructure:"refresh_token_expiration"`
-	FCMDeviceToken         string                 `mapstructure:"fcm_device_token"`
-	MultipleDatabaseConfig MultipleDatabaseConfig `mapstructure:"multiple_databases"`
-	SQLiteConfig           SQLiteConfig           `mapstructure:"sqlite"`
-	PostgreSQLConfig       PostgreSQLConfig       `mapstructure:"postgresql"`
-	FirebaseConfig         FirebaseConfig         `mapstructure:"firebase"`
-	EmailConfig            EmailConfig            `mapstructure:"email"`
-	SMSConfig              SMSConfig              `mapstructure:"sms"`
-	RabbitMQConfig         RabbitMQConfig         `mapstructure:"rabbitmq"`
+	HTTPPort               int            `mapstructure:"http_port"`
+	HTTPSPort              int            `mapstructure:"https_port"`
+	Host                   string         `mapstructure:"host"`
+	JWTSecretKey           string         `mapstructure:"jwt_secret_key"`
+	JWTExpiration          time.Duration  `mapstructure:"jwt_expiration"`
+	RefreshTokenExpiration time.Duration  `mapstructure:"refresh_token_expiration"`
+	FCMDeviceToken         string         `mapstructure:"fcm_device_token"`
+	DatabaseConfig         DatabaseConfig `mapstructure:"database"`
+	EmailConfig            EmailConfig    `mapstructure:"email"`
+	SMSConfig              SMSConfig      `mapstructure:"sms"`
+	RabbitMQConfig         RabbitMQConfig `mapstructure:"rabbitmq"`
 }
 
-// RabbitMQConfig holds the RabbitMQ configuration.
-type RabbitMQConfig struct {
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
+// DatabaseConfig holds configuration for all enabled databases and settings.
+type DatabaseConfig struct {
+	SQLite     SQLiteConfig     `mapstructure:"sqlite"`
+	PostgreSQL PostgreSQLConfig `mapstructure:"postgresql"`
+	Firebase   FirebaseConfig   `mapstructure:"firebase"`
 }
 
-// MultipleDatabaseConfig holds the multiple databases configuration.
-type MultipleDatabaseConfig struct {
-	UseRealtimeDatabase bool `mapstructure:"use_realtime_database"`
-	UseFirestore        bool `mapstructure:"use_firestore"`
-	UseSQLite           bool `mapstructure:"use_sqlite"`
-	UsePostgreSQL       bool `mapstructure:"use_postgresql"`
-}
-
-// SQLiteConfig holds the SQLite configuration.
+// SQLiteConfig holds the SQLite database configuration.
 type SQLiteConfig struct {
-	Driver           string `mapstructure:"driver"`
-	ConnectionString string `mapstructure:"connection_string"`
+	Enabled bool   `mapstructure:"enabled"`
+	Driver  string `mapstructure:"driver"`
+	File    string `mapstructure:"file"`
 }
 
-// PostgreSQLConfig holds the PostgreSQL configuration.
+// ConnectionString returns an SQLite connection string built from the config.
+func (sqlite *SQLiteConfig) ConnectionString() string {
+	if !sqlite.Enabled {
+		return "" // Optionally return an empty string if not enabled
+	}
+	return sqlite.File
+}
+
+// PostgreSQLConfig holds the PostgreSQL database configuration.
 type PostgreSQLConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
 	User     string `mapstructure:"user"`
@@ -59,8 +55,18 @@ type PostgreSQLConfig struct {
 	Dbname   string `mapstructure:"dbname"`
 }
 
-// FirebaseConfig holds the Firebase configuration.
+// ConnectionString returns a PostgreSQL connection string built from the config.
+func (pg *PostgreSQLConfig) ConnectionString() string {
+	if !pg.Enabled {
+		return "" // Optionally return an empty string if not enabled
+	}
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		pg.Host, pg.Port, pg.User, pg.Password, pg.Dbname)
+}
+
+// FirebaseConfig holds the Firebase database configuration.
 type FirebaseConfig struct {
+	Enabled           bool   `mapstructure:"enabled"`
 	APIKey            string `mapstructure:"api_key"`
 	ProjectID         string `mapstructure:"project_id"`
 	StorageBucket     string `mapstructure:"storage_bucket"`
@@ -69,9 +75,9 @@ type FirebaseConfig struct {
 	ServiceAccountKey string `mapstructure:"service_account_key"`
 }
 
-// EmailConfig holds the email service configuration.
+// EmailConfig holds the configuration for email services.
 type EmailConfig struct {
-	Provider                     string        `mapstructure:"provider"` // New field added for email provider
+	Provider                     string        `mapstructure:"provider"`
 	Mailjet                      SMTPConfig    `mapstructure:"mailjet"`
 	Sendgrid                     SMTPConfig    `mapstructure:"sendgrid"`
 	Generic                      SMTPConfig    `mapstructure:"generic"`
@@ -79,7 +85,7 @@ type EmailConfig struct {
 	PasswordResetEmailExpiration time.Duration `mapstructure:"password_reset_email_expiration"`
 }
 
-// SMTPConfig holds the SMTP configuration.
+// SMTPConfig holds the configuration for SMTP services.
 type SMTPConfig struct {
 	SMTPServer   string `mapstructure:"smtp_server"`
 	SMTPPort     int    `mapstructure:"smtp_port"`
@@ -96,217 +102,12 @@ type SMSConfig struct {
 	TwilioPhoneNumber string `mapstructure:"twilio_phone_number"`
 }
 
-// LoadConfig loads the application configuration.
-func LoadConfig(configFilePath string) (*AppConfig, error) {
-	// Initialize a new AppConfig
-	cfg := &AppConfig{}
-
-	// Use Viper to read the config file
-	viper.SetConfigFile(configFilePath)
-
-	// Read the config file
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
-	}
-
-	// Unmarshal the configuration into the AppConfig struct
-	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("error unmarshalling config: %w", err)
-	}
-
-	return cfg, nil
-}
-
-// General Configuration Functions
-
-// GetHTTPPort returns the configured HTTP port.
-func (c *AppConfig) GetHTTPPort() int {
-	return c.HTTPPort
-}
-
-// GetHost returns the configured host.
-func (c *AppConfig) GetHost() string {
-	if c.Host == "" {
-		return "localhost"
-	}
-	return c.Host
-}
-
-// GetJWTSecretKey returns the configured JWT secret key.
-func (c *AppConfig) GetJWTSecretKey() string {
-	return c.JWTSecretKey
-}
-
-// GetJWTExpiration returns the configured JWT expiration duration.
-func (c *AppConfig) GetJWTExpiration() time.Duration {
-	return c.JWTExpiration
-}
-
-// GetRefreshTokenExpiration returns the configured Refresh Token expiration duration.
-func (c *AppConfig) GetRefreshTokenExpiration() time.Duration {
-	return c.RefreshTokenExpiration
-}
-
-// GetFCMDeviceToken returns the configured FCM Device Token.
-func (c *AppConfig) GetFCMDeviceToken() string {
-	return c.FCMDeviceToken
-}
-
-// Database Configuration Functions
-
-// GetDatabaseURL returns the database URL based on the configured database type.
-func (c *AppConfig) GetDatabaseURL() string {
-	if c.GetMultipleDatabaseConfig().GetUseSQLite() {
-		return c.GetSQLiteConfig().GetConnectionString()
-	} else if c.GetMultipleDatabaseConfig().GetUsePostgreSQL() {
-		return c.GetPostgreSQLConfig().GetConnectionString()
-	}
-
-	// Default to SQLite if neither is specified
-	return c.SQLiteConfig.ConnectionString
-}
-
-// GetMultipleDatabaseConfig returns the configuration for multiple databases.
-func (c *AppConfig) GetMultipleDatabaseConfig() *MultipleDatabaseConfig {
-	return &c.MultipleDatabaseConfig
-}
-
-// GetUseSQLite returns the UseSQLite configuration.
-func (c *MultipleDatabaseConfig) GetUseSQLite() bool {
-	return c.UseSQLite
-}
-
-// GetUsePostgreSQL returns the UsePostgreSQL configuration.
-func (c *MultipleDatabaseConfig) GetUsePostgreSQL() bool {
-	return c.UsePostgreSQL
-}
-
-// GetUseRealtimeDatabase returns the UseRealtimeDatabase configuration.
-func (c *MultipleDatabaseConfig) GetUseRealtimeDatabase() bool {
-	return c.UseRealtimeDatabase
-}
-
-// GetUseFirestore returns the UseFirestore configuration.
-func (c *MultipleDatabaseConfig) GetUseFirestore() bool {
-	return c.UseFirestore
-}
-
-// SQLite Configuration Functions
-
-// GetSQLiteConfig returns the SQLite configuration.
-func (c *AppConfig) GetSQLiteConfig() *SQLiteConfig {
-	return &c.SQLiteConfig
-}
-
-// GetConnectionString returns the SQLite Connection String configuration.
-func (c *SQLiteConfig) GetConnectionString() string {
-	return c.ConnectionString
-}
-
-// PostgreSQL Configuration Functions
-
-// GetPostgreSQLConfig returns the PostgreSQL configuration.
-func (c *AppConfig) GetPostgreSQLConfig() *PostgreSQLConfig {
-	return &c.PostgreSQLConfig
-}
-
-// GetConnectionString returns the PostgreSQL connection string configuration.
-func (c *PostgreSQLConfig) GetConnectionString() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		c.Host, c.Port, c.User, c.Password, c.Dbname)
-}
-
-// Firebase Configuration Functions
-
-// GetFirebaseConfig returns the Firebase configuration.
-func (c *AppConfig) GetFirebaseConfig() *FirebaseConfig {
-	return &c.FirebaseConfig
-}
-
-// GetFirebaseURL returns the Firebase database URL.
-func (c *AppConfig) GetFirebaseURL() string {
-	return c.FirebaseConfig.DatabaseURL
-}
-
-// GetAPIKey returns the Firebase API Key configuration.
-func (c *FirebaseConfig) GetAPIKey() string {
-	return c.APIKey
-}
-
-// GetProjectID returns the Firebase Project ID configuration.
-func (c *FirebaseConfig) GetProjectID() string {
-	return c.ProjectID
-}
-
-// GetStorageBucket returns the Firebase Storage Bucket configuration.
-func (c *FirebaseConfig) GetStorageBucket() string {
-	return c.StorageBucket
-}
-
-// GetAuthDomain returns the Firebase Auth Domain configuration.
-func (c *FirebaseConfig) GetAuthDomain() string {
-	return c.AuthDomain
-}
-
-// GetDatabaseURL returns the Firebase Database URL configuration.
-func (c *FirebaseConfig) GetDatabaseURL() string {
-	return c.DatabaseURL
-}
-
-// GetServiceAccountKey returns the Firebase Service Account Key configuration.
-func (c *FirebaseConfig) GetServiceAccountKey() string {
-	return c.ServiceAccountKey
-}
-
-// Email Configuration Functions
-
-// GetEmailConfig returns the email service configuration.
-func (c *AppConfig) GetEmailConfig() *EmailConfig {
-	return &c.EmailConfig
-}
-
-// GetMailjetConfig returns the Mailjet SMTP configuration.
-func (c *EmailConfig) GetMailjetConfig() *SMTPConfig {
-	return &c.Mailjet
-}
-
-// GetSendgridConfig returns the Sendgrid SMTP configuration.
-func (c *EmailConfig) GetSendgridConfig() *SMTPConfig {
-	return &c.Sendgrid
-}
-
-// GetGenericSMTPConfig returns the generic SMTP configuration.
-func (c *EmailConfig) GetGenericSMTPConfig() *SMTPConfig {
-	return &c.Generic
-}
-
-// SMS Configuration Functions
-
-// GetSMSConfig returns the SMS service configuration.
-func (c *AppConfig) GetSMSConfig() *SMSConfig {
-	return &c.SMSConfig
-}
-
-// GetTwilioAccountSID returns the Twilio Account SID configuration.
-func (c *SMSConfig) GetTwilioAccountSID() string {
-	return c.TwilioAccountSID
-}
-
-// GetTwilioAuthToken returns the Twilio Auth Token configuration.
-func (c *SMSConfig) GetTwilioAuthToken() string {
-	return c.TwilioAuthToken
-}
-
-// GetTwilioPhoneNumber returns the Twilio Phone Number configuration.
-func (c *SMSConfig) GetTwilioPhoneNumber() string {
-	return c.TwilioPhoneNumber
-}
-
-// RabbitMQ Configuration Functions
-
-// GetRabbitMQConfig returns the RabbitMQ configuration.
-func (c *AppConfig) GetRabbitMQConfig() *RabbitMQConfig {
-	return &c.RabbitMQConfig
+// RabbitMQConfig holds the RabbitMQ configuration.
+type RabbitMQConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
 }
 
 // GetRabbitMQConnectionString returns the RabbitMQ connection string.
@@ -318,4 +119,19 @@ func (c *RabbitMQConfig) GetRabbitMQConnectionString() string {
 
 	return fmt.Sprintf("amqp://%s:%s@%s:%d/",
 		c.Username, c.Password, c.Host, c.Port)
+}
+
+// LoadConfig loads the application configuration from a file.
+func LoadConfig(configPath string) (*AppConfig, error) {
+	viper.SetConfigFile(configPath)
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read config file: %v", err)
+	}
+
+	var config AppConfig
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
+	}
+
+	return &config, nil
 }

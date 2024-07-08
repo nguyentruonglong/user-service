@@ -41,7 +41,7 @@ func LoginUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *c
 	}
 
 	// Generate Bearer token with JWT secret key from the configuration
-	accessToken, refreshToken, err := generateTokens(user, cfg.GetJWTSecretKey(), cfg.GetJWTExpiration(), cfg.GetRefreshTokenExpiration(), db)
+	accessToken, refreshToken, err := generateTokens(user, cfg.JWTSecretKey, cfg.JWTExpiration, cfg.RefreshTokenExpiration, db)
 	if err != nil {
 		log.Printf("Token generation failed: %v", err)
 		errors.ErrorResponseJSON(c.Writer, errors.ErrTokenGenerationFailed, http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func LoginUser(c *gin.Context, db *gorm.DB, firebaseClient *firebase.App, cfg *c
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		TokenType:    "Bearer",
-		ExpiresIn:    int(cfg.GetJWTExpiration().Seconds()), // Convert duration to seconds
+		ExpiresIn:    int(cfg.JWTExpiration.Seconds()), // Convert duration to seconds
 	}
 
 	c.JSON(http.StatusOK, successResponse)

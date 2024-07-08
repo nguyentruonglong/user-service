@@ -39,7 +39,7 @@ func SendPhoneNumberVerificationCode(c *gin.Context, db *gorm.DB, firebaseClient
 	// Generate a random verification code
 	phoneNumberVerificationCode := generatePhoneNumberVerificationCode()
 
-	// Send the verification SMS using Firebase Cloud Messaging (FCM)
+	// Send the verification SMS using Twilio
 	if err := sendVerificationSMS(user.PhoneNumber, phoneNumberVerificationCode, cfg); err != nil {
 		errors.ErrorResponseJSON(c.Writer, errors.ErrSMSFailure, http.StatusInternalServerError)
 		return
@@ -123,7 +123,7 @@ func sendVerificationSMS(phoneNumber, verificationCode string, cfg *config.AppCo
 
 	params := &openapi.CreateMessageParams{}
 	params.SetTo(phoneNumber)
-	params.SetFrom(cfg.GetSMSConfig().GetTwilioPhoneNumber())
+	params.SetFrom(cfg.SMSConfig.TwilioPhoneNumber)
 	params.SetBody(verificationCode)
 
 	_, err := client.Api.CreateMessage(params)
